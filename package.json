@@ -1,0 +1,41 @@
+{
+  "name": "iglesia",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Sistema de Gestión de Iglesia",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n client,server -c blue,green \"npm:dev -w client\" \"npm:dev -w server\"",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run test --workspaces",
+    "format": "prettier --write .",
+    "db:link": "supabase link",
+    "db:new": "supabase migration new",
+    "db:push": "supabase db push",
+    "db:types": "node scripts/gen-db-types.mjs",
+    "db:seed-users": "tsx --env-file=server/.env scripts/seed-users.ts"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.5",
+    "@types/supertest": "^7.2.1",
+    "concurrently": "^10.0.6",
+    "eslint": "^10.13.0",
+    "prettier": "^3.9.10",
+    "supabase": "^2.122.0",
+    "supertest": "^7.3.1",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.0.5"
+  }
+}

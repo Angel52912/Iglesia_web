@@ -6,3 +6,6 @@ build/
 !.env.example
 .DS_Store
 *.log
+.supabase/
+supabase/.temp/
+*.tsbuildinfo
