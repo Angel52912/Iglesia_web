@@ -13,7 +13,7 @@
 ## Seguridad
 
 - Supabase Auth con correo y contraseña. Registro público desactivado: el administrador crea usuarios desde el backend (`auth.admin.createUser`).
-- El rol vive en `public.profiles.role`; el trigger de alta lo lee de `raw_app_meta_data`, nunca de `user_metadata`.
+- El rol vive en `public.profiles.role` (fuente de verdad). Al crear el usuario también se guarda en `app_metadata` (nunca en `user_metadata`, que el usuario puede editar) solo como respaldo.
 - Doble capa: Express valida JWT y rol (`requireRole`) y consulta Supabase con el JWT del usuario, de modo que RLS también aplica.
 - `service_role` solo en el servidor: alta/baja de usuarios y endpoints internos de n8n (`/api/internal/*`, con `N8N_API_KEY`).
 - Usuario con `profiles.active = false`: `current_app_role()` devuelve `NULL` y todas las políticas fallan.
@@ -33,7 +33,7 @@ Tablas: `profiles`, `church_settings` (singleton), `meeting_schedules`, `members
 ## Migraciones (una por RF)
 
 1. base (extensión `pg_trgm`, enums, `set_updated_at()`)
-2. rf01 profiles (`handle_new_user`, `current_app_role`, `has_role`)
+2. rf01 profiles (`current_app_role`, `has_role`, `ensure_active_admin`)
 3. rf02 members
 4. rf10 church_settings (+ bucket)
 5. rf05 ministries (políticas de administrador, pastor y secretario)
@@ -58,4 +58,7 @@ Las políticas del coordinador van en una migración posterior para no bloquear 
 - `authenticate` lee rol y `active` de `profiles` en cada petición, nunca del token.
 - Un administrador no puede desactivarse ni cambiarse el rol (API, 409). Siempre debe quedar un admin activo (API y trigger `ensure_active_admin`, error `last_active_admin` traducido a 409).
 - Correos en minúsculas (`check (email = lower(email))`).
-- El primer admin se crea solo con `scripts/seed-users.ts`; "Add user" del panel de Supabase falla a propósito porque no permite `app_metadata`.
+- Se descarta el trigger `handle_new_user`: fallaba con "El usuario debe crearse con un rol en app_metadata" (P0001) porque en el INSERT sobre `auth.users` aún no estaba `app_metadata`. La migración `20261101000200_rf01_drop_new_user_trigger.sql` elimina el trigger `on_auth_user_created` y la función (las migraciones anteriores no se editan).
+- Nuevo flujo de alta (`provisionUser`, usado por el servidor y por `scripts/seed-users.ts`): `auth.admin.createUser` con el rol en `app_metadata` y luego `insert` en `public.profiles` con `service_role` (correo en minúsculas). Si el insert falla se borra el usuario recién creado con `auth.admin.deleteUser`, para no dejar usuarios sin perfil; si el borrado también falla se registra solo el id y el mensaje (nunca la contraseña) y se propaga el error original.
+- `profiles` no tiene política de INSERT para usuarios: el alta es exclusiva de `service_role`.
+- Un usuario creado desde "Add user" del panel de Supabase queda sin perfil: `authenticate` responde 401 y no puede entrar. El primer admin se crea con `scripts/seed-users.ts`.

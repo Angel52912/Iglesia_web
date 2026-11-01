@@ -4,7 +4,14 @@ import { HttpError } from '../src/errors.js';
 import { SupabaseProfilesRepository } from '../src/modules/users/supabaseProfiles.repository.js';
 import { UsersService } from '../src/modules/users/users.service.js';
 import type { AuthenticatedUser } from '../src/types/auth.js';
-import { FakeAuthAdmin, FakeProfilesRepository, ROLE_IDS, createStore, idFor } from './helpers.js';
+import {
+  FakeAuthAdmin,
+  FakeProfileWriter,
+  FakeProfilesRepository,
+  ROLE_IDS,
+  createStore,
+  idFor,
+} from './helpers.js';
 
 const SECOND_ADMIN_ID = idFor(9);
 
@@ -20,7 +27,11 @@ describe('UsersService: siempre debe quedar un administrador activo', () => {
     ['quitarle el rol', { role: 'pastor' as const }],
   ])('rechaza con 409 al intentar %s si es el único admin activo', async (_caso, patch) => {
     const store = createStore();
-    const service = new UsersService(new FakeProfilesRepository(store), new FakeAuthAdmin(store));
+    const service = new UsersService(
+      new FakeProfilesRepository(store),
+      new FakeAuthAdmin(store),
+      new FakeProfileWriter(store),
+    );
 
     await expect(
       service.update(actorOf(SECOND_ADMIN_ID), ROLE_IDS.admin, patch),
@@ -42,7 +53,11 @@ describe('UsersService: siempre debe quedar un administrador activo', () => {
       active: true,
       createdAt: '2026-11-01T00:00:00Z',
     });
-    const service = new UsersService(new FakeProfilesRepository(store), new FakeAuthAdmin(store));
+    const service = new UsersService(
+      new FakeProfilesRepository(store),
+      new FakeAuthAdmin(store),
+      new FakeProfileWriter(store),
+    );
 
     const updated = await service.update(actorOf(SECOND_ADMIN_ID), ROLE_IDS.admin, {
       active: false,

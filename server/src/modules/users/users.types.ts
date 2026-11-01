@@ -22,6 +22,13 @@ export interface UpdateUserInput {
   active?: boolean | undefined;
 }
 
+export interface NewProfile {
+  id: string;
+  email: string;
+  fullName: string;
+  role: AppRole;
+}
+
 // Acceso a public.profiles con el JWT del usuario (RLS aplica).
 export interface ProfilesRepository {
   list(): Promise<UserProfile[]>;
@@ -30,9 +37,15 @@ export interface ProfilesRepository {
   update(id: string, patch: UpdateUserInput): Promise<UserProfile | null>;
 }
 
+// Alta de perfiles: solo con service_role (no hay política de INSERT para usuarios).
+export interface ProfileWriter {
+  insert(profile: NewProfile): Promise<void>;
+}
+
 // Operaciones de Supabase Auth que requieren service_role.
 export interface AuthAdminPort {
   createUser(input: CreateUserInput): Promise<string>;
+  deleteUser(id: string): Promise<void>;
   setRole(id: string, role: AppRole): Promise<void>;
   setBlocked(id: string, blocked: boolean): Promise<void>;
 }

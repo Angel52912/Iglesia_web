@@ -2,7 +2,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'dev-dist'] },
+  { ignores: ['dist', 'dev-dist', 'src/types/database.ts'] },
   ...tseslint.configs.strictTypeChecked,
   reactHooks.configs.flat.recommended,
   {

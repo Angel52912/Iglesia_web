@@ -3,15 +3,18 @@ import type { AuthenticatedUser } from '../../types/auth.js';
 import type {
   AuthAdminPort,
   CreateUserInput,
+  ProfileWriter,
   ProfilesRepository,
   UpdateUserInput,
   UserProfile,
 } from './users.types.js';
+import { provisionUser } from './provisionUser.js';
 
 export class UsersService {
   constructor(
     private readonly profiles: ProfilesRepository,
     private readonly authAdmin: AuthAdminPort,
+    private readonly profileWriter: ProfileWriter,
   ) {}
 
   list(): Promise<UserProfile[]> {
@@ -19,8 +22,7 @@ export class UsersService {
   }
 
   async create(input: CreateUserInput): Promise<UserProfile> {
-    // El trigger handle_new_user crea el perfil con el rol de app_metadata.
-    const id = await this.authAdmin.createUser(input);
+    const id = await provisionUser(this.authAdmin, this.profileWriter, input);
     const profile = await this.profiles.findById(id);
     if (!profile) {
       throw new Error('El perfil no se creó para el usuario nuevo');

@@ -5,6 +5,8 @@ import { HttpError } from '../src/errors.js';
 import type {
   AuthAdminPort,
   CreateUserInput,
+  NewProfile,
+  ProfileWriter,
   ProfilesRepository,
   UpdateUserInput,
   UserProfile,
@@ -28,8 +30,13 @@ export interface Store {
   profiles: Map<string, UserProfile>;
   blocked: Set<string>;
   authRoles: Map<string, AppRole>;
+  // Usuarios que existen en Auth (id -> correo), con o sin perfil.
+  authUsers: Map<string, string>;
+  deletedUsers: string[];
   createCalls: CreateUserInput[];
   failNextCreate: Error | null;
+  failNextProfileInsert: Error | null;
+  failNextDelete: Error | null;
 }
 
 export function createStore(): Store {
@@ -49,8 +56,12 @@ export function createStore(): Store {
     profiles,
     blocked: new Set(),
     authRoles: new Map(),
+    authUsers: new Map(),
+    deletedUsers: [],
     createCalls: [],
     failNextCreate: null,
+    failNextProfileInsert: null,
+    failNextDelete: null,
   };
 }
 
@@ -94,21 +105,31 @@ export class FakeAuthAdmin implements AuthAdminPort {
       this.store.failNextCreate = null;
       return Promise.reject(error);
     }
-    // unique(email) distingue mayúsculas: por eso la API debe normalizar a minúsculas.
-    const duplicated = [...this.store.profiles.values()].some((p) => p.email === input.email);
+    // Como Auth: el correo se compara en minúsculas.
+    const email = input.email.toLowerCase();
+    const duplicated =
+      [...this.store.profiles.values()].some((p) => p.email === email) ||
+      [...this.store.authUsers.values()].includes(email);
     if (duplicated) {
       return Promise.reject(new HttpError(409, 'Ya existe un usuario con ese correo'));
     }
     const id = randomUUID();
-    this.store.profiles.set(id, {
-      id,
-      email: input.email,
-      fullName: input.fullName,
-      role: input.role,
-      active: true,
-      createdAt: '2026-11-01T00:00:00Z',
-    });
+    this.store.authUsers.set(id, email);
+    // Rol también en app_metadata. El perfil NO se crea aquí: lo inserta provisionUser.
+    this.store.authRoles.set(id, input.role);
     return Promise.resolve(id);
+  }
+
+  deleteUser(id: string): Promise<void> {
+    if (this.store.failNextDelete) {
+      const error = this.store.failNextDelete;
+      this.store.failNextDelete = null;
+      return Promise.reject(error);
+    }
+    this.store.authUsers.delete(id);
+    this.store.authRoles.delete(id);
+    this.store.deletedUsers.push(id);
+    return Promise.resolve();
   }
 
   setRole(id: string, role: AppRole): Promise<void> {
@@ -119,6 +140,24 @@ export class FakeAuthAdmin implements AuthAdminPort {
   setBlocked(id: string, blocked: boolean): Promise<void> {
     if (blocked) this.store.blocked.add(id);
     else this.store.blocked.delete(id);
+    return Promise.resolve();
+  }
+}
+
+export class FakeProfileWriter implements ProfileWriter {
+  constructor(private readonly store: Store) {}
+
+  insert(profile: NewProfile): Promise<void> {
+    if (this.store.failNextProfileInsert) {
+      const error = this.store.failNextProfileInsert;
+      this.store.failNextProfileInsert = null;
+      return Promise.reject(error);
+    }
+    this.store.profiles.set(profile.id, {
+      ...profile,
+      active: true,
+      createdAt: '2026-11-01T00:00:00Z',
+    });
     return Promise.resolve();
   }
 }
@@ -169,7 +208,12 @@ export function buildTestApp(): TestContext {
     { CLIENT_ORIGIN: 'http://localhost:5173' },
     {
       authenticator: new FakeAuthenticator(store, tokens),
-      usersFor: () => new UsersService(new FakeProfilesRepository(store), authAdmin),
+      usersFor: () =>
+        new UsersService(
+          new FakeProfilesRepository(store),
+          authAdmin,
+          new FakeProfileWriter(store),
+        ),
     },
   );
   return { app, store, authAdmin };

@@ -3,16 +3,23 @@ import { loadEnv } from './config/env.js';
 import { createAdminClient, createUserClient } from './config/supabase.js';
 import { SupabaseAuthenticator } from './modules/auth/supabaseAuthenticator.js';
 import { SupabaseAuthAdmin } from './modules/users/supabaseAuthAdmin.js';
+import { SupabaseProfileWriter } from './modules/users/supabaseProfileWriter.js';
 import { SupabaseProfilesRepository } from './modules/users/supabaseProfiles.repository.js';
 import { UsersService } from './modules/users/users.service.js';
 
 const env = loadEnv();
-const authAdmin = new SupabaseAuthAdmin(createAdminClient(env));
+const adminClient = createAdminClient(env);
+const authAdmin = new SupabaseAuthAdmin(adminClient);
+const profileWriter = new SupabaseProfileWriter(adminClient);
 
 const app = createApp(env, {
   authenticator: new SupabaseAuthenticator(env),
   usersFor: (accessToken) =>
-    new UsersService(new SupabaseProfilesRepository(createUserClient(env, accessToken)), authAdmin),
+    new UsersService(
+      new SupabaseProfilesRepository(createUserClient(env, accessToken)),
+      authAdmin,
+      profileWriter,
+    ),
 });
 
 app.listen(env.PORT, () => {

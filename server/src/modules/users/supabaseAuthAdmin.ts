@@ -11,10 +11,11 @@ export class SupabaseAuthAdmin implements AuthAdminPort {
 
   async createUser(input: CreateUserInput): Promise<string> {
     const { data, error } = await this.admin.auth.admin.createUser({
-      email: input.email,
+      email: input.email.toLowerCase(),
       password: input.password,
       email_confirm: true,
-      // El rol va en app_metadata (no editable por el usuario); el trigger lo lee de ahí.
+      // El rol de verdad vive en public.profiles; en app_metadata (no editable por el
+      // usuario) queda como respaldo y se mantiene sincronizado en setRole.
       app_metadata: { role: input.role },
       user_metadata: { full_name: input.fullName },
     });
@@ -26,6 +27,11 @@ export class SupabaseAuthAdmin implements AuthAdminPort {
       throw new Error(`No se pudo crear el usuario: ${error.message}`);
     }
     return data.user.id;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    const { error } = await this.admin.auth.admin.deleteUser(id);
+    if (error) throw new Error(`No se pudo borrar el usuario en Auth: ${error.message}`);
   }
 
   async setRole(id: string, role: AppRole): Promise<void> {

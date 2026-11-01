@@ -1,6 +1,8 @@
-// Crea un usuario por rol con la Admin API de Supabase (service_role).
-// Es la ÚNICA vía para crear el primer administrador: el panel de Supabase ("Add user")
-// no permite poner el rol en app_metadata y el trigger handle_new_user lo exige.
+// Crea un usuario por rol: primero en Auth (service_role, rol también en app_metadata) y
+// luego su perfil en public.profiles. Si el perfil falla, borra el usuario recién creado
+// (misma lógica que el servidor: provisionUser).
+// Es la vía para crear el primer administrador. Un usuario creado desde "Add user" del panel
+// de Supabase queda sin perfil y no puede entrar (authenticate responde 401).
 //
 // Uso: npm run db:seed-users   (lee server/.env)
 // Variables: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY y una contraseña por rol:
@@ -9,13 +11,15 @@
 //   SEED_EMAIL_DOMAIN (opcional, por defecto iglesia.test).
 // Las contraseñas nunca se imprimen ni se guardan en el repositorio.
 import { createClient } from '@supabase/supabase-js';
-
-const ROLES = ['admin', 'pastor', 'secretary', 'treasurer', 'coordinator'] as const;
-type Role = (typeof ROLES)[number];
+import { HttpError } from '../server/src/errors.js';
+import { provisionUser } from '../server/src/modules/users/provisionUser.js';
+import { SupabaseAuthAdmin } from '../server/src/modules/users/supabaseAuthAdmin.js';
+import { SupabaseProfileWriter } from '../server/src/modules/users/supabaseProfileWriter.js';
+import { ROLES, type AppRole } from '../server/src/types/auth.js';
 
 const MIN_PASSWORD_LENGTH = 8;
 
-const FULL_NAMES: Record<Role, string> = {
+const FULL_NAMES: Record<AppRole, string> = {
   admin: 'Administrador',
   pastor: 'Pastor',
   secretary: 'Secretario',
@@ -44,9 +48,11 @@ const domain = (process.env.SEED_EMAIL_DOMAIN ?? 'iglesia.test').toLowerCase();
 // El administrador es obligatorio: sin él no hay quién cree al resto desde la aplicación.
 requireEnv('SEED_PASSWORD_ADMIN');
 
-const admin = createClient(url, serviceRoleKey, {
+const client = createClient(url, serviceRoleKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
+const authAdmin = new SupabaseAuthAdmin(client);
+const profileWriter = new SupabaseProfileWriter(client);
 
 async function main(): Promise<number> {
   let failures = 0;
@@ -67,21 +73,22 @@ async function main(): Promise<number> {
       continue;
     }
 
-    const { error } = await admin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      app_metadata: { role },
-      user_metadata: { full_name: FULL_NAMES[role] },
-    });
-
-    if (!error) {
+    try {
+      await provisionUser(authAdmin, profileWriter, {
+        email,
+        password,
+        fullName: FULL_NAMES[role],
+        role,
+      });
       console.log(`- ${email}: creado (${role})`);
-    } else if (error.code === 'email_exists') {
-      console.log(`- ${email}: ya existe`);
-    } else {
-      console.error(`- ${email}: error (${error.message})`);
-      failures += 1;
+    } catch (error) {
+      if (error instanceof HttpError && error.status === 409) {
+        console.log(`- ${email}: ya existe`);
+      } else {
+        const reason = error instanceof Error ? error.message : 'error desconocido';
+        console.error(`- ${email}: error (${reason})`);
+        failures += 1;
+      }
     }
   }
 
