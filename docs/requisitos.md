@@ -39,7 +39,7 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [x] Buscar miembros por nombre.
 - [x] Filtrar miembros activos e inactivos.
 - [x] Desactivar registros sin eliminarlos permanentemente.
-(Pendiente: aplicar la migración `rf02_members` con `npm run db:push` y verificar RLS contra Supabase real.)
+(Verificado manualmente contra Supabase real: migración aplicada, RLS y permisos por rol probados.)
 
 ### RF-03. Control de asistencia
 - [ ] Registrar asistencia a cultos, reuniones y actividades.
