@@ -29,6 +29,10 @@ export const errorHandler: ErrorRequestHandler = (err: unknown, _req, res, _next
     });
     return;
   }
+  if (typeof err === 'object' && err !== null && 'type' in err && err.type === 'entity.too.large') {
+    res.status(413).json({ error: 'El archivo es demasiado grande' });
+    return;
+  }
   if (isBodyParseError(err)) {
     res.status(400).json({ error: 'El cuerpo de la petición no es un JSON válido' });
     return;

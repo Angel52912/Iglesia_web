@@ -126,6 +126,12 @@ select:disabled {
   background: var(--card);
 }
 
+.logo {
+  max-width: 12rem;
+  max-height: 8rem;
+  object-fit: contain;
+}
+
 .card--inactive {
   opacity: 0.65;
 }

@@ -17,6 +17,7 @@ export function HomePage(): React.JSX.Element {
       <nav className="nav">
         {MEMBER_ROLES.includes(user.role) && <Link to="/miembros">Miembros</Link>}
         {user.role === 'admin' && <Link to="/usuarios">Usuarios</Link>}
+        {user.role === 'admin' && <Link to="/configuracion">Configuración</Link>}
       </nav>
       <button
         type="button"

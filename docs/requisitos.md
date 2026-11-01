@@ -91,11 +91,12 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [ ] Exportación de reportes a PDF o Excel.
 
 ### RF-10. Configuración de la iglesia
-- [ ] Registrar nombre de la iglesia.
-- [ ] Agregar logotipo.
-- [ ] Dirección y datos de contacto.
-- [ ] Registrar horarios habituales de reuniones.
-- [ ] Actualizar información institucional.
+- [x] Registrar nombre de la iglesia.
+- [x] Agregar logotipo.
+- [x] Dirección y datos de contacto.
+- [x] Registrar horarios habituales de reuniones.
+- [x] Actualizar información institucional.
+  (Probado con repositorio simulado; la migración `rf10_church_settings` y el bucket aún no se aplican ni verifican contra Supabase real: `npm run db:push`. Nota: solo el administrador lee la configuración, según la matriz.)
 
 ## 4. Requisitos adicionales (propuestos para cumplir el pizarrón)
 

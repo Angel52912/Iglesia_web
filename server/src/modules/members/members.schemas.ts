@@ -7,7 +7,7 @@ const fullNameSchema = z
   .max(120, 'El nombre es demasiado largo');
 
 // Cadena vacía = sin dato: los campos opcionales se guardan como null.
-const phoneSchema = z
+export const phoneSchema = z
   .string()
   .trim()
   .max(30, 'El teléfono es demasiado largo')
@@ -15,7 +15,7 @@ const phoneSchema = z
   .nullable()
   .transform((value) => (value === null || value === '' ? null : value));
 
-const emailSchema = z
+export const emailSchema = z
   .string()
   .trim()
   .max(254, 'Correo no válido')

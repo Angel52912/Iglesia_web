@@ -10,6 +10,10 @@ import {
   createMembersRouter,
   type MembersServiceFactory,
 } from './modules/members/members.routes.js';
+import {
+  createSettingsRouter,
+  type SettingsServiceFactory,
+} from './modules/settings/settings.routes.js';
 import { createUsersRouter, type UsersServiceFactory } from './modules/users/users.routes.js';
 import type { Authenticator } from './types/auth.js';
 
@@ -17,6 +21,7 @@ export interface AppDeps {
   authenticator: Authenticator;
   usersFor: UsersServiceFactory;
   membersFor: MembersServiceFactory;
+  settingsFor: SettingsServiceFactory;
 }
 
 export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Express {
@@ -34,6 +39,13 @@ export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Expre
   app.use('/api/auth', authenticate, createAuthRouter());
   app.use('/api/users', authenticate, requireRole('admin'), createUsersRouter(deps.usersFor));
   app.use('/api/members', authenticate, createMembersRouter(deps.membersFor));
+
+  app.use(
+    '/api/settings',
+    authenticate,
+    requireRole('admin'),
+    createSettingsRouter(deps.settingsFor),
+  );
 
   app.use(notFound);
   app.use(errorHandler);

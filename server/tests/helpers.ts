@@ -3,6 +3,16 @@ import type { Express } from 'express';
 import { createApp } from '../src/app.js';
 import { HttpError } from '../src/errors.js';
 import { MembersService } from '../src/modules/members/members.service.js';
+import { SettingsService } from '../src/modules/settings/settings.service.js';
+import type {
+  ChurchSettings,
+  LogoFile,
+  MeetingSchedule,
+  ScheduleInput,
+  SettingsRepository,
+  UpdateScheduleInput,
+  UpdateSettingsInput,
+} from '../src/modules/settings/settings.types.js';
 import type {
   CreateMemberInput,
   Member,
@@ -36,6 +46,8 @@ export const ROLE_IDS: Record<AppRole, string> = {
 
 export interface Store {
   members: Map<string, Member>;
+  settings: ChurchSettings;
+  logos: LogoFile[];
   profiles: Map<string, UserProfile>;
   blocked: Set<string>;
   authRoles: Map<string, AppRole>;
@@ -63,6 +75,15 @@ export function createStore(): Store {
   }
   return {
     members: new Map(),
+    settings: {
+      name: 'Mi iglesia',
+      address: null,
+      phone: null,
+      email: null,
+      logoUrl: null,
+      schedules: [],
+    },
+    logos: [],
     profiles,
     blocked: new Set(),
     authRoles: new Map(),
@@ -145,6 +166,67 @@ export class FakeMembersRepository implements MembersRepository {
     };
     this.store.members.set(id, updated);
     return Promise.resolve(updated);
+  }
+}
+
+export class FakeSettingsRepository implements SettingsRepository {
+  constructor(private readonly store: Store) {}
+
+  get(): Promise<ChurchSettings> {
+    return Promise.resolve(this.store.settings);
+  }
+
+  update(patch: UpdateSettingsInput): Promise<ChurchSettings> {
+    const current = this.store.settings;
+    this.store.settings = {
+      ...current,
+      name: patch.name ?? current.name,
+      address: patch.address === undefined ? current.address : patch.address,
+      phone: patch.phone === undefined ? current.phone : patch.phone,
+      email: patch.email === undefined ? current.email : patch.email,
+    };
+    return this.get();
+  }
+
+  setLogo(file: LogoFile): Promise<ChurchSettings> {
+    this.store.logos.push(file);
+    const logoUrl = `https://storage.test/logo-${String(this.store.logos.length)}`;
+    this.store.settings = { ...this.store.settings, logoUrl };
+    return this.get();
+  }
+
+  removeLogo(): Promise<ChurchSettings> {
+    this.store.settings = { ...this.store.settings, logoUrl: null };
+    return this.get();
+  }
+
+  createSchedule(input: ScheduleInput): Promise<MeetingSchedule> {
+    const schedule: MeetingSchedule = { id: randomUUID(), ...input };
+    this.store.settings.schedules.push(schedule);
+    return Promise.resolve(schedule);
+  }
+
+  updateSchedule(id: string, patch: UpdateScheduleInput): Promise<MeetingSchedule | null> {
+    const list = this.store.settings.schedules;
+    const index = list.findIndex((s) => s.id === id);
+    const current = list[index];
+    if (!current) return Promise.resolve(null);
+    const updated: MeetingSchedule = {
+      ...current,
+      label: patch.label ?? current.label,
+      weekday: patch.weekday ?? current.weekday,
+      startTime: patch.startTime ?? current.startTime,
+    };
+    list[index] = updated;
+    return Promise.resolve(updated);
+  }
+
+  deleteSchedule(id: string): Promise<boolean> {
+    const list = this.store.settings.schedules;
+    const index = list.findIndex((s) => s.id === id);
+    if (index === -1) return Promise.resolve(false);
+    list.splice(index, 1);
+    return Promise.resolve(true);
   }
 }
 
@@ -268,6 +350,7 @@ export function buildTestApp(): TestContext {
           new FakeProfileWriter(store),
         ),
       membersFor: () => new MembersService(new FakeMembersRepository(store)),
+      settingsFor: () => new SettingsService(new FakeSettingsRepository(store)),
     },
   );
   return { app, store, authAdmin };

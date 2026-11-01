@@ -11,8 +11,10 @@ export class ApiError extends Error {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH';
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
+  // Archivo como cuerpo binario (se envía con su propio Content-Type); no se combina con body.
+  file?: File;
   // Token explícito: evita pedir la sesión dentro de onAuthStateChange (puede bloquearse).
   token?: string;
 }
@@ -37,8 +39,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   if (token) headers.Authorization = `Bearer ${token}`;
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
 
+  if (options.file) headers['Content-Type'] = options.file.type;
+
   const init: RequestInit = { method: options.method ?? 'GET', headers };
   if (options.body !== undefined) init.body = JSON.stringify(options.body);
+  if (options.file) init.body = options.file;
 
   let response: Response;
   try {
