@@ -24,12 +24,12 @@ Administrador, pastor, secretario, tesorero y coordinador.
 ## 3. Casos de uso
 
 ### RF-01. Inicio de sesión y usuarios
-- [x] Registrar usuarios del sistema. (API probada; falta prueba contra Supabase real)
-- [ ] Iniciar y cerrar sesión.
-- [ ] Autenticación mediante correo y contraseña.
-- [ ] Recuperar o restablecer contraseñas.
+- [x] Registrar usuarios del sistema.
+- [x] Iniciar y cerrar sesión.
+- [x] Autenticación mediante correo y contraseña.
+- [x] Recuperar o restablecer contraseñas.
 - [x] Manejar roles: administrador, pastor, secretario, tesorero y coordinador.
-- [x] Restringir el acceso a las funciones según el rol. (middleware probado: 401/403 por rol; las políticas RLS aún no se probaron contra una BD real)
+- [x] Restringir el acceso a las funciones según el rol. (401/403 por rol probado; las políticas RLS no tienen pruebas automáticas contra la BD)
 
 ### RF-02. Gestión de miembros
 - [ ] Registrar nuevos miembros de la iglesia.
