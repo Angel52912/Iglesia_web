@@ -1,7 +1,39 @@
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from '../auth/AuthProvider';
+import { ProtectedRoute } from '../auth/ProtectedRoute';
+import { UsersPage } from '../features/users/UsersPage';
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
+import { HomePage } from '../pages/HomePage';
+import { LoginPage } from '../pages/LoginPage';
+import { ResetPasswordPage } from '../pages/ResetPasswordPage';
+
 export function App(): React.JSX.Element {
   return (
-    <main>
-      <h1>Gestión de Iglesia</h1>
-    </main>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/recuperar" element={<ForgotPasswordPage />} />
+          <Route path="/restablecer" element={<ResetPasswordPage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/usuarios"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <UsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

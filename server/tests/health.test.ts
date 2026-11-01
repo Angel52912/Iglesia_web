@@ -1,18 +1,18 @@
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
-import { crearApp } from '../src/app.js';
+import { buildTestApp } from './helpers.js';
 
-const app = crearApp({ CLIENT_ORIGIN: 'http://localhost:5173' });
+const { app } = buildTestApp();
 
 describe('GET /api/health', () => {
-  it('responde 200 con status ok', async () => {
-    const respuesta = await request(app).get('/api/health');
-    expect(respuesta.status).toBe(200);
-    expect(respuesta.body).toEqual({ status: 'ok' });
+  it('responde 200 con status ok sin autenticación', async () => {
+    const response = await request(app).get('/api/health');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ status: 'ok' });
   });
 
   it('responde 404 en rutas desconocidas', async () => {
-    const respuesta = await request(app).get('/api/no-existe');
-    expect(respuesta.status).toBe(404);
+    const response = await request(app).get('/api/no-existe');
+    expect(response.status).toBe(404);
   });
 });

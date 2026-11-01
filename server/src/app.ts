@@ -2,10 +2,21 @@ import cors from 'cors';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
 import type { Env } from './config/env.js';
-import { manejarErrores, noEncontrado } from './middleware/errorHandler.js';
+import { createAuthenticate } from './middleware/authenticate.js';
+import { errorHandler, notFound } from './middleware/errorHandler.js';
+import { requireRole } from './middleware/requireRole.js';
+import { createAuthRouter } from './modules/auth/auth.routes.js';
+import { createUsersRouter, type UsersServiceFactory } from './modules/users/users.routes.js';
+import type { Authenticator } from './types/auth.js';
 
-export function crearApp(env: Pick<Env, 'CLIENT_ORIGIN'>): Express {
+export interface AppDeps {
+  authenticator: Authenticator;
+  usersFor: UsersServiceFactory;
+}
+
+export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Express {
   const app = express();
+  const authenticate = createAuthenticate(deps.authenticator);
 
   app.use(helmet());
   app.use(cors({ origin: env.CLIENT_ORIGIN }));
@@ -15,8 +26,11 @@ export function crearApp(env: Pick<Env, 'CLIENT_ORIGIN'>): Express {
     res.json({ status: 'ok' });
   });
 
-  app.use(noEncontrado);
-  app.use(manejarErrores);
+  app.use('/api/auth', authenticate, createAuthRouter());
+  app.use('/api/users', authenticate, requireRole('admin'), createUsersRouter(deps.usersFor));
+
+  app.use(notFound);
+  app.use(errorHandler);
 
   return app;
 }

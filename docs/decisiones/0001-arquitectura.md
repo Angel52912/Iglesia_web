@@ -50,3 +50,12 @@ Las políticas del coordinador van en una migración posterior para no bloquear 
 
 - Enums de concepto y método de pago (confirmar con un tesorero real).
 - Responsables de eventos como **miembros**, no como usuarios, para avisarles sin cuenta.
+
+## Ajustes de RF-01 (2026-11-01)
+
+- `profiles.member_id` se agrega en la migración de RF-02 (`members` aún no existe).
+- La migración base solo crea `app_role` y `set_updated_at()`; cada RF crea sus propios enums.
+- `authenticate` lee rol y `active` de `profiles` en cada petición, nunca del token.
+- Un administrador no puede desactivarse ni cambiarse el rol (API, 409). Siempre debe quedar un admin activo (API y trigger `ensure_active_admin`, error `last_active_admin` traducido a 409).
+- Correos en minúsculas (`check (email = lower(email))`).
+- El primer admin se crea solo con `scripts/seed-users.ts`; "Add user" del panel de Supabase falla a propósito porque no permite `app_metadata`.
