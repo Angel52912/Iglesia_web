@@ -49,17 +49,19 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [ ] Generar reportes semanales y mensuales.
 
 ### RF-04. Gestión de eventos
-- [ ] Crear eventos religiosos y administrativos.
-- [ ] Registrar título, fecha, hora, lugar y descripción.
-- [ ] Asignar responsables.
-- [ ] Modificar o cancelar eventos.
-- [ ] Visualizar eventos en un calendario.
+- [x] Crear eventos religiosos y administrativos.
+- [x] Registrar título, fecha, hora, lugar y descripción.
+- [x] Asignar responsables.
+- [x] Modificar o cancelar eventos.
+- [x] Visualizar eventos en un calendario.
+  (Verificado contra Supabase real; ver nota de RF-05. Los eventos no se eliminan: se cancelan.)
 
 ### RF-05. Administración de ministerios
-- [ ] Registrar ministerios o grupos de trabajo (ej.: música, jóvenes, niños, enseñanza, servicio).
-- [ ] Asignar coordinadores.
-- [ ] Vincular miembros a cada ministerio.
-- [ ] Consultar integrantes y actividades programadas.
+- [x] Registrar ministerios o grupos de trabajo (ej.: música, jóvenes, niños, enseñanza, servicio).
+- [x] Asignar coordinadores.
+- [x] Vincular miembros a cada ministerio.
+- [x] Consultar integrantes y actividades programadas.
+  (Verificado contra Supabase real con los repositorios reales: migraciones aplicadas, 409 por nombre repetido, 400 por miembro/ministerio inexistente, RLS por rol. La API se prueba también con repositorios simulados. Coordinador sin acceso hasta la migración `coordinator_policies`; el tesorero ve los eventos sin responsables ni ministerio porque RLS le oculta miembros y ministerios.)
 
 ### RF-06. Gestión de donaciones y aportaciones
 - [ ] Registrar aportaciones económicas.

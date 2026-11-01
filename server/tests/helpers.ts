@@ -3,6 +3,23 @@ import type { Express } from 'express';
 import { createApp } from '../src/app.js';
 import { HttpError } from '../src/errors.js';
 import { MembersService } from '../src/modules/members/members.service.js';
+import { EventsService } from '../src/modules/events/events.service.js';
+import type {
+  ChurchEvent,
+  CreateEventInput,
+  EventFilters,
+  EventsRepository,
+  UpdateEventInput,
+} from '../src/modules/events/events.types.js';
+import { MinistriesService } from '../src/modules/ministries/ministries.service.js';
+import type {
+  CreateMinistryInput,
+  MemberRef,
+  MinistriesRepository,
+  Ministry,
+  MinistryDetail,
+  UpdateMinistryInput,
+} from '../src/modules/ministries/ministries.types.js';
 import { SettingsService } from '../src/modules/settings/settings.service.js';
 import type {
   ChurchSettings,
@@ -48,6 +65,8 @@ export interface Store {
   members: Map<string, Member>;
   settings: ChurchSettings;
   logos: LogoFile[];
+  ministries: Map<string, MinistryDetail>;
+  events: Map<string, ChurchEvent>;
   profiles: Map<string, UserProfile>;
   blocked: Set<string>;
   authRoles: Map<string, AppRole>;
@@ -84,6 +103,8 @@ export function createStore(): Store {
       schedules: [],
     },
     logos: [],
+    ministries: new Map(),
+    events: new Map(),
     profiles,
     blocked: new Set(),
     authRoles: new Map(),
@@ -230,6 +251,157 @@ export class FakeSettingsRepository implements SettingsRepository {
   }
 }
 
+// Como la BD: un miembro que no existe da 400 y un nombre repetido da 409.
+function refsFor(store: Store, ids: string[]): MemberRef[] {
+  return ids.map((id) => {
+    const member = store.members.get(id);
+    if (!member) throw new HttpError(400, 'Hay un dato relacionado que no existe');
+    return { id, fullName: member.fullName };
+  });
+}
+
+export class FakeMinistriesRepository implements MinistriesRepository {
+  constructor(private readonly store: Store) {}
+
+  list(): Promise<Ministry[]> {
+    const list = [...this.store.ministries.values()].map((m): Ministry => ({
+      id: m.id,
+      name: m.name,
+      description: m.description,
+      active: m.active,
+      coordinators: m.coordinators,
+      memberCount: m.memberCount,
+    }));
+    return Promise.resolve(list.sort((a, b) => a.name.localeCompare(b.name)));
+  }
+
+  findById(id: string): Promise<MinistryDetail | null> {
+    return Promise.resolve(this.store.ministries.get(id) ?? null);
+  }
+
+  private assertUniqueName(name: string, exceptId?: string): void {
+    const duplicated = [...this.store.ministries.values()].some(
+      (m) => m.id !== exceptId && m.name.toLowerCase() === name.toLowerCase(),
+    );
+    if (duplicated) throw new HttpError(409, 'Ya existe un ministerio con ese nombre');
+  }
+
+  create(input: CreateMinistryInput): Promise<MinistryDetail> {
+    this.assertUniqueName(input.name);
+    const ministry: MinistryDetail = {
+      id: randomUUID(),
+      name: input.name,
+      description: input.description,
+      active: true,
+      coordinators: [],
+      memberCount: 0,
+      members: [],
+    };
+    this.store.ministries.set(ministry.id, ministry);
+    return Promise.resolve(ministry);
+  }
+
+  update(id: string, patch: UpdateMinistryInput): Promise<MinistryDetail | null> {
+    const current = this.store.ministries.get(id);
+    if (!current) return Promise.resolve(null);
+    if (patch.name !== undefined) this.assertUniqueName(patch.name, id);
+    const updated: MinistryDetail = {
+      ...current,
+      name: patch.name ?? current.name,
+      description: patch.description === undefined ? current.description : patch.description,
+      active: patch.active ?? current.active,
+    };
+    this.store.ministries.set(id, updated);
+    return Promise.resolve(updated);
+  }
+
+  setCoordinators(id: string, memberIds: string[]): Promise<MinistryDetail | null> {
+    const current = this.store.ministries.get(id);
+    if (!current) return Promise.resolve(null);
+    const updated = { ...current, coordinators: refsFor(this.store, memberIds) };
+    this.store.ministries.set(id, updated);
+    return Promise.resolve(updated);
+  }
+
+  setMembers(id: string, memberIds: string[]): Promise<MinistryDetail | null> {
+    const current = this.store.ministries.get(id);
+    if (!current) return Promise.resolve(null);
+    const members = refsFor(this.store, memberIds);
+    const updated = { ...current, members, memberCount: members.length };
+    this.store.ministries.set(id, updated);
+    return Promise.resolve(updated);
+  }
+}
+
+export class FakeEventsRepository implements EventsRepository {
+  constructor(private readonly store: Store) {}
+
+  list(filters: EventFilters): Promise<ChurchEvent[]> {
+    const found = [...this.store.events.values()].filter(
+      (e) =>
+        (filters.from === undefined || e.eventDate >= filters.from) &&
+        (filters.to === undefined || e.eventDate <= filters.to) &&
+        (filters.status === undefined || e.status === filters.status) &&
+        (filters.ministryId === undefined || e.ministryId === filters.ministryId),
+    );
+    const sorted = found.sort((a, b) =>
+      `${a.eventDate}${a.startTime}`.localeCompare(`${b.eventDate}${b.startTime}`),
+    );
+    return Promise.resolve(sorted);
+  }
+
+  private ministryNameFor(ministryId: string | null): string | null {
+    if (ministryId === null) return null;
+    const ministry = this.store.ministries.get(ministryId);
+    if (!ministry) throw new HttpError(400, 'Hay un dato relacionado que no existe');
+    return ministry.name;
+  }
+
+  create(input: CreateEventInput): Promise<ChurchEvent> {
+    const event: ChurchEvent = {
+      id: randomUUID(),
+      title: input.title,
+      description: input.description,
+      eventDate: input.eventDate,
+      startTime: input.startTime,
+      location: input.location,
+      type: input.type,
+      category: input.category,
+      status: 'scheduled',
+      ministryId: input.ministryId,
+      ministryName: this.ministryNameFor(input.ministryId),
+      responsibles: refsFor(this.store, input.responsibleIds),
+    };
+    this.store.events.set(event.id, event);
+    return Promise.resolve(event);
+  }
+
+  update(id: string, patch: UpdateEventInput): Promise<ChurchEvent | null> {
+    const current = this.store.events.get(id);
+    if (!current) return Promise.resolve(null);
+    const ministryId = patch.ministryId === undefined ? current.ministryId : patch.ministryId;
+    const updated: ChurchEvent = {
+      ...current,
+      title: patch.title ?? current.title,
+      description: patch.description === undefined ? current.description : patch.description,
+      eventDate: patch.eventDate ?? current.eventDate,
+      startTime: patch.startTime ?? current.startTime,
+      location: patch.location === undefined ? current.location : patch.location,
+      type: patch.type ?? current.type,
+      category: patch.category ?? current.category,
+      status: patch.status ?? current.status,
+      ministryId,
+      ministryName: this.ministryNameFor(ministryId),
+      responsibles:
+        patch.responsibleIds === undefined
+          ? current.responsibles
+          : refsFor(this.store, patch.responsibleIds),
+    };
+    this.store.events.set(id, updated);
+    return Promise.resolve(updated);
+  }
+}
+
 export class FakeAuthAdmin implements AuthAdminPort {
   constructor(private readonly store: Store) {}
 
@@ -350,6 +522,8 @@ export function buildTestApp(): TestContext {
           new FakeProfileWriter(store),
         ),
       membersFor: () => new MembersService(new FakeMembersRepository(store)),
+      ministriesFor: () => new MinistriesService(new FakeMinistriesRepository(store)),
+      eventsFor: () => new EventsService(new FakeEventsRepository(store)),
       settingsFor: () => new SettingsService(new FakeSettingsRepository(store)),
     },
   );

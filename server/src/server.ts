@@ -4,6 +4,10 @@ import { createAdminClient, createUserClient } from './config/supabase.js';
 import { SupabaseAuthenticator } from './modules/auth/supabaseAuthenticator.js';
 import { MembersService } from './modules/members/members.service.js';
 import { SupabaseMembersRepository } from './modules/members/supabaseMembers.repository.js';
+import { EventsService } from './modules/events/events.service.js';
+import { SupabaseEventsRepository } from './modules/events/supabaseEvents.repository.js';
+import { MinistriesService } from './modules/ministries/ministries.service.js';
+import { SupabaseMinistriesRepository } from './modules/ministries/supabaseMinistries.repository.js';
 import { SettingsService } from './modules/settings/settings.service.js';
 import { SupabaseSettingsRepository } from './modules/settings/supabaseSettings.repository.js';
 import { SupabaseAuthAdmin } from './modules/users/supabaseAuthAdmin.js';
@@ -26,6 +30,10 @@ const app = createApp(env, {
     ),
   membersFor: (accessToken) =>
     new MembersService(new SupabaseMembersRepository(createUserClient(env, accessToken))),
+  ministriesFor: (accessToken) =>
+    new MinistriesService(new SupabaseMinistriesRepository(createUserClient(env, accessToken))),
+  eventsFor: (accessToken) =>
+    new EventsService(new SupabaseEventsRepository(createUserClient(env, accessToken))),
   settingsFor: (accessToken) =>
     new SettingsService(new SupabaseSettingsRepository(createUserClient(env, accessToken))),
 });

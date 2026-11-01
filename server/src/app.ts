@@ -6,6 +6,11 @@ import { createAuthenticate } from './middleware/authenticate.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { requireRole } from './middleware/requireRole.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
+import { createEventsRouter, type EventsServiceFactory } from './modules/events/events.routes.js';
+import {
+  createMinistriesRouter,
+  type MinistriesServiceFactory,
+} from './modules/ministries/ministries.routes.js';
 import {
   createMembersRouter,
   type MembersServiceFactory,
@@ -22,6 +27,8 @@ export interface AppDeps {
   usersFor: UsersServiceFactory;
   membersFor: MembersServiceFactory;
   settingsFor: SettingsServiceFactory;
+  ministriesFor: MinistriesServiceFactory;
+  eventsFor: EventsServiceFactory;
 }
 
 export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Express {
@@ -40,6 +47,8 @@ export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Expre
   app.use('/api/users', authenticate, requireRole('admin'), createUsersRouter(deps.usersFor));
   app.use('/api/members', authenticate, createMembersRouter(deps.membersFor));
 
+  app.use('/api/ministries', authenticate, createMinistriesRouter(deps.ministriesFor));
+  app.use('/api/events', authenticate, createEventsRouter(deps.eventsFor));
   app.use(
     '/api/settings',
     authenticate,

@@ -3,6 +3,7 @@ import { ROLE_LABELS, type Role } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
 
 const MEMBER_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary'];
+const EVENT_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary', 'treasurer'];
 
 export function HomePage(): React.JSX.Element {
   const { user, signOut } = useAuth();
@@ -16,6 +17,8 @@ export function HomePage(): React.JSX.Element {
       </p>
       <nav className="nav">
         {MEMBER_ROLES.includes(user.role) && <Link to="/miembros">Miembros</Link>}
+        {EVENT_ROLES.includes(user.role) && <Link to="/eventos">Eventos</Link>}
+        {MEMBER_ROLES.includes(user.role) && <Link to="/ministerios">Ministerios</Link>}
         {user.role === 'admin' && <Link to="/usuarios">Usuarios</Link>}
         {user.role === 'admin' && <Link to="/configuracion">Configuración</Link>}
       </nav>
