@@ -32,13 +32,14 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [x] Restringir el acceso a las funciones según el rol. (401/403 por rol probado; las políticas RLS no tienen pruebas automáticas contra la BD)
 
 ### RF-02. Gestión de miembros
-- [ ] Registrar nuevos miembros de la iglesia.
-- [ ] Consultar el listado de miembros.
-- [ ] Editar información personal.
-- [ ] Registrar nombre, teléfono, correo y fecha de ingreso.
-- [ ] Buscar miembros por nombre.
-- [ ] Filtrar miembros activos e inactivos.
-- [ ] Desactivar registros sin eliminarlos permanentemente.
+- [x] Registrar nuevos miembros de la iglesia.
+- [x] Consultar el listado de miembros.
+- [x] Editar información personal.
+- [x] Registrar nombre, teléfono, correo y fecha de ingreso.
+- [x] Buscar miembros por nombre.
+- [x] Filtrar miembros activos e inactivos.
+- [x] Desactivar registros sin eliminarlos permanentemente.
+(Pendiente: aplicar la migración `rf02_members` con `npm run db:push` y verificar RLS contra Supabase real.)
 
 ### RF-03. Control de asistencia
 - [ ] Registrar asistencia a cultos, reuniones y actividades.

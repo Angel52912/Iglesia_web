@@ -2,6 +2,14 @@ import { randomUUID } from 'node:crypto';
 import type { Express } from 'express';
 import { createApp } from '../src/app.js';
 import { HttpError } from '../src/errors.js';
+import { MembersService } from '../src/modules/members/members.service.js';
+import type {
+  CreateMemberInput,
+  Member,
+  MemberFilters,
+  MembersRepository,
+  UpdateMemberInput,
+} from '../src/modules/members/members.types.js';
 import type {
   AuthAdminPort,
   CreateUserInput,
@@ -27,6 +35,7 @@ export const ROLE_IDS: Record<AppRole, string> = {
 };
 
 export interface Store {
+  members: Map<string, Member>;
   profiles: Map<string, UserProfile>;
   blocked: Set<string>;
   authRoles: Map<string, AppRole>;
@@ -53,6 +62,7 @@ export function createStore(): Store {
     });
   }
   return {
+    members: new Map(),
     profiles,
     blocked: new Set(),
     authRoles: new Map(),
@@ -91,6 +101,49 @@ export class FakeProfilesRepository implements ProfilesRepository {
       active: patch.active ?? current.active,
     };
     this.store.profiles.set(id, updated);
+    return Promise.resolve(updated);
+  }
+}
+
+export class FakeMembersRepository implements MembersRepository {
+  constructor(private readonly store: Store) {}
+
+  list(filters: MemberFilters): Promise<Member[]> {
+    const search = filters.search?.toLowerCase();
+    const found = [...this.store.members.values()].filter(
+      (m) =>
+        (search === undefined || m.fullName.toLowerCase().includes(search)) &&
+        (filters.active === undefined || m.active === filters.active),
+    );
+    return Promise.resolve(found.sort((a, b) => a.fullName.localeCompare(b.fullName)));
+  }
+
+  create(input: CreateMemberInput): Promise<Member> {
+    const member: Member = {
+      id: randomUUID(),
+      fullName: input.fullName,
+      phone: input.phone,
+      email: input.email,
+      joinedOn: input.joinedOn ?? '2026-11-01',
+      active: true,
+      createdAt: '2026-11-01T00:00:00Z',
+    };
+    this.store.members.set(member.id, member);
+    return Promise.resolve(member);
+  }
+
+  update(id: string, patch: UpdateMemberInput): Promise<Member | null> {
+    const current = this.store.members.get(id);
+    if (!current) return Promise.resolve(null);
+    const updated: Member = {
+      ...current,
+      fullName: patch.fullName ?? current.fullName,
+      phone: patch.phone === undefined ? current.phone : patch.phone,
+      email: patch.email === undefined ? current.email : patch.email,
+      joinedOn: patch.joinedOn ?? current.joinedOn,
+      active: patch.active ?? current.active,
+    };
+    this.store.members.set(id, updated);
     return Promise.resolve(updated);
   }
 }
@@ -214,6 +267,7 @@ export function buildTestApp(): TestContext {
           authAdmin,
           new FakeProfileWriter(store),
         ),
+      membersFor: () => new MembersService(new FakeMembersRepository(store)),
     },
   );
   return { app, store, authAdmin };

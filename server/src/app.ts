@@ -6,12 +6,17 @@ import { createAuthenticate } from './middleware/authenticate.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { requireRole } from './middleware/requireRole.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
+import {
+  createMembersRouter,
+  type MembersServiceFactory,
+} from './modules/members/members.routes.js';
 import { createUsersRouter, type UsersServiceFactory } from './modules/users/users.routes.js';
 import type { Authenticator } from './types/auth.js';
 
 export interface AppDeps {
   authenticator: Authenticator;
   usersFor: UsersServiceFactory;
+  membersFor: MembersServiceFactory;
 }
 
 export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Express {
@@ -28,6 +33,7 @@ export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Expre
 
   app.use('/api/auth', authenticate, createAuthRouter());
   app.use('/api/users', authenticate, requireRole('admin'), createUsersRouter(deps.usersFor));
+  app.use('/api/members', authenticate, createMembersRouter(deps.membersFor));
 
   app.use(notFound);
   app.use(errorHandler);

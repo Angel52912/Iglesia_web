@@ -82,6 +82,12 @@ button {
   cursor: pointer;
 }
 
+button.button--secondary {
+  background: var(--card);
+  color: var(--fg);
+  border-color: var(--border);
+}
+
 button:disabled,
 select:disabled {
   opacity: 0.55;

@@ -2,6 +2,8 @@ import { createApp } from './app.js';
 import { loadEnv } from './config/env.js';
 import { createAdminClient, createUserClient } from './config/supabase.js';
 import { SupabaseAuthenticator } from './modules/auth/supabaseAuthenticator.js';
+import { MembersService } from './modules/members/members.service.js';
+import { SupabaseMembersRepository } from './modules/members/supabaseMembers.repository.js';
 import { SupabaseAuthAdmin } from './modules/users/supabaseAuthAdmin.js';
 import { SupabaseProfileWriter } from './modules/users/supabaseProfileWriter.js';
 import { SupabaseProfilesRepository } from './modules/users/supabaseProfiles.repository.js';
@@ -20,6 +22,8 @@ const app = createApp(env, {
       authAdmin,
       profileWriter,
     ),
+  membersFor: (accessToken) =>
+    new MembersService(new SupabaseMembersRepository(createUserClient(env, accessToken))),
 });
 
 app.listen(env.PORT, () => {
