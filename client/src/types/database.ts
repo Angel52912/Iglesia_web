@@ -39,6 +39,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      church_settings: {
+        Row: {
+          address: string | null
+          email: string | null
+          id: number
+          logo_path: string | null
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          email?: string | null
+          id?: number
+          logo_path?: string | null
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          email?: string | null
+          id?: number
+          logo_path?: string | null
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meeting_schedules: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           active: boolean
