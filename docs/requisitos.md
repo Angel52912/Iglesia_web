@@ -96,7 +96,7 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [x] Dirección y datos de contacto.
 - [x] Registrar horarios habituales de reuniones.
 - [x] Actualizar información institucional.
-  (Probado con repositorio simulado; la migración `rf10_church_settings` y el bucket aún no se aplican ni verifican contra Supabase real: `npm run db:push`. Nota: solo el administrador lee la configuración, según la matriz.)
+  (Verificado contra Supabase real: migración aplicada, subida al bucket, URL pública, RLS por rol y rechazo de tipos no permitidos. La API se prueba con repositorio simulado. Solo el administrador lee la configuración, según la matriz.)
 
 ## 4. Requisitos adicionales (propuestos para cumplir el pizarrón)
 

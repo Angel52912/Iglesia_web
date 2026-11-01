@@ -34,11 +34,20 @@ describe('PATCH /api/settings', () => {
     });
   });
 
-  it('cadena vacía borra el dato opcional', async () => {
+  it('cadena vacía o solo espacios guarda null en dirección, teléfono y correo', async () => {
     const { app } = buildTestApp();
-    await request(app).patch('/api/settings').set(asAdmin).send({ address: 'Calle 1' });
-    const response = await request(app).patch('/api/settings').set(asAdmin).send({ address: '' });
-    expect(response.body).toMatchObject({ settings: { address: null } });
+    await request(app)
+      .patch('/api/settings')
+      .set(asAdmin)
+      .send({ address: 'Calle 1', phone: '555 1', email: 'a@b.com' });
+    const response = await request(app)
+      .patch('/api/settings')
+      .set(asAdmin)
+      .send({ address: '', phone: '  ', email: '' });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      settings: { address: null, phone: null, email: null },
+    });
   });
 
   it.each([
@@ -74,6 +83,40 @@ describe('logotipo', () => {
       .set(asAdmin)
       .set('Content-Type', 'application/pdf')
       .send(PNG);
+    expect(response.status).toBe(415);
+    expect(store.logos).toHaveLength(0);
+  });
+
+  it.each([
+    ['image/jpeg', Buffer.from('ffd8ffe000104a46', 'hex')],
+    ['image/webp', Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WEBPVP8 ')])],
+  ])('acepta %s con firma válida', async (type, bytes) => {
+    const { app, store } = buildTestApp();
+    const response = await request(app)
+      .put('/api/settings/logo')
+      .set(asAdmin)
+      .set('Content-Type', type)
+      .send(bytes);
+    expect(response.status).toBe(200);
+    expect(store.logos[0]?.contentType).toBe(type);
+  });
+
+  it.each([
+    ['texto con Content-Type image/png', 'image/png', Buffer.from('<script>alert(1)</script>')],
+    ['JPEG declarado como PNG', 'image/png', Buffer.from('ffd8ffe000104a46', 'hex')],
+    ['PNG declarado como WebP', 'image/webp', Buffer.from('89504e470d0a1a0a', 'hex')],
+    [
+      'RIFF que no es WebP',
+      'image/webp',
+      Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WAVEfmt ')]),
+    ],
+  ])('rechaza con 415 por firma incorrecta: %s', async (_caso, type, bytes) => {
+    const { app, store } = buildTestApp();
+    const response = await request(app)
+      .put('/api/settings/logo')
+      .set(asAdmin)
+      .set('Content-Type', type)
+      .send(bytes);
     expect(response.status).toBe(415);
     expect(store.logos).toHaveLength(0);
   });
