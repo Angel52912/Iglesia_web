@@ -16,7 +16,10 @@ const phoneSchema = z
   .transform((value) => (value === null || value === '' ? null : value));
 
 const emailSchema = z
-  .union([z.literal(''), z.email('Correo no válido').max(254, 'Correo no válido')])
+  .string()
+  .trim()
+  .max(254, 'Correo no válido')
+  .refine((value) => value === '' || z.email().safeParse(value).success, 'Correo no válido')
   .nullable()
   .transform((value) => (value === null || value === '' ? null : value.toLowerCase()));
 

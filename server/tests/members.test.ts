@@ -135,3 +135,68 @@ describe('PATCH /api/members/:id', () => {
     expect(store.members.has(id)).toBe(true);
   });
 });
+
+describe('normalización de correo y campos vacíos', () => {
+  it('POST convierte el correo a minúsculas y lo guarda así', async () => {
+    const { app, store } = buildTestApp();
+    const response = await request(app)
+      .post('/api/members')
+      .set(asSecretary)
+      .send({ fullName: 'Ana', email: 'ANA.Perez@Correo.COM' });
+    expect(response.status).toBe(201);
+    expect(response.body).toMatchObject({ member: { email: 'ana.perez@correo.com' } });
+    const { id } = (response.body as { member: { id: string } }).member;
+    expect(store.members.get(id)?.email).toBe('ana.perez@correo.com');
+  });
+
+  it('PATCH convierte el correo a minúsculas y lo guarda así', async () => {
+    const { app, store } = buildTestApp();
+    const { id } = await createMember(app, { fullName: 'Ana' });
+    const response = await request(app)
+      .patch(`/api/members/${id}`)
+      .set(asSecretary)
+      .send({ email: 'NUEVO@Correo.Com' });
+    expect(response.status).toBe(200);
+    expect(store.members.get(id)?.email).toBe('nuevo@correo.com');
+  });
+
+  it.each(['phone', 'email'] as const)('POST guarda %s vacío como null', async (field) => {
+    const { app, store } = buildTestApp();
+    const response = await request(app)
+      .post('/api/members')
+      .set(asSecretary)
+      .send({ fullName: 'Luis', phone: '555 000', email: 'luis@correo.com', [field]: '' });
+    expect(response.status).toBe(201);
+    const { id } = (response.body as { member: { id: string } }).member;
+    expect(store.members.get(id)?.[field]).toBeNull();
+  });
+
+  it.each(['phone', 'email'] as const)(
+    'POST guarda %s con solo espacios como null',
+    async (field) => {
+      const { app, store } = buildTestApp();
+      const response = await request(app)
+        .post('/api/members')
+        .set(asSecretary)
+        .send({ fullName: 'Luis', [field]: '   ' });
+      expect(response.status).toBe(201);
+      const { id } = (response.body as { member: { id: string } }).member;
+      expect(store.members.get(id)?.[field]).toBeNull();
+    },
+  );
+
+  it.each(['phone', 'email'] as const)('PATCH guarda %s vacío como null', async (field) => {
+    const { app, store } = buildTestApp();
+    const { id } = await createMember(app, {
+      fullName: 'Ana',
+      phone: '555 123',
+      email: 'ana@correo.com',
+    });
+    const response = await request(app)
+      .patch(`/api/members/${id}`)
+      .set(asSecretary)
+      .send({ [field]: '' });
+    expect(response.status).toBe(200);
+    expect(store.members.get(id)?.[field]).toBeNull();
+  });
+});
