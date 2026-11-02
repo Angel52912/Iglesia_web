@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { HttpError } from '../../errors.js';
 import { dashboardRowSchema } from './dashboard.row.js';
 import type { DashboardData, DashboardRepository } from './dashboard.types.js';
 
@@ -7,6 +8,10 @@ export class SupabaseDashboardRepository implements DashboardRepository {
 
   async stats(): Promise<DashboardData> {
     const result = await this.db.rpc('dashboard_stats');
+    // 42501 = la función rechazó el rol: es un 403, no un error del servidor.
+    if (result.error?.code === '42501') {
+      throw new HttpError(403, 'No tienes permiso para ver el panel principal');
+    }
     if (result.error) throw new Error(result.error.message);
     const data: unknown = result.data;
     const row = dashboardRowSchema.parse(data);
