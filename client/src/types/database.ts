@@ -489,6 +489,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      dashboard_stats: { Args: never; Returns: Json }
       donation_donors: {
         Args: never
         Returns: {

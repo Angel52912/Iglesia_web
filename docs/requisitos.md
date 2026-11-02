@@ -81,13 +81,13 @@ Administrador, pastor, secretario, tesorero y coordinador.
 (Verificado contra Supabase real con los repositorios reales (38 comprobaciones, 2026-11-02): admin, pastor y secretario crean, editan, leen y eliminan; el coordinador lee pero no crea, edita ni elimina; el tesorero no lee ni escribe (RLS filtra, 0 filas); título o cuerpo vacíos o demasiado largos se rechazan en la API (zod) y en la BD (CHECK). el tesorero no tiene acceso, según la matriz. Los próximos eventos solo se muestran a admin, pastor y secretario; el coordinador los verá cuando existan sus políticas.)
 
 ### RF-08. Panel principal (Dashboard)
-(Implementado y probado con repositorios simulados, API y componente; casillas sin marcar hasta aplicar la migración `20261101001000_rf08_dashboard_stats.sql` con `npm run db:push` y verificar la función `dashboard_stats` contra Supabase real.)
-- [ ] Total de miembros activos.
-- [ ] Eventos próximos.
-- [ ] Número de asistencias registradas.
-- [ ] Cantidad de ministerios.
-- [ ] Resumen de ingresos registrados, únicamente para roles autorizados.
-- [ ] Gráficas estadísticas.
+(Verificado contra Supabase real con la app real y los usuarios sembrados (2026-11-02): admin y pastor reciben datos generales e ingresos; secretario y coordinador, datos generales sin ingresos; tesorero, solo ingresos. Las cifras coinciden con los datos creados. dashboard_stats rechaza al rol anon y sin token la API responde 401.)
+- [x] Total de miembros activos.
+- [x] Eventos próximos.
+- [x] Número de asistencias registradas.
+- [x] Cantidad de ministerios.
+- [x] Resumen de ingresos registrados, únicamente para roles autorizados.
+- [x] Gráficas estadísticas.
 
 ### RF-09. Reportes
 - [x] Reporte general de miembros.
@@ -95,7 +95,7 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [x] Reporte de participación por ministerio.
 - [x] Reporte de ingresos por periodo.
 - [x] Exportación de reportes a PDF o Excel.
-(Probado con repositorios simulados (API, permisos por rol y generación de PDF/XLSX); falta verificar contra Supabase real. Admin y pastor: todos; secretario: miembros y asistencia; tesorero: ingresos. El reporte del coordinador ("su ministerio") queda pendiente: no hay vínculo cuenta-ministerio hasta coordinator_policies. El reporte de ingresos es solo agregado por mes y método: nunca muestra donantes ni conceptos, así que el pastor puede verlo.)
+(Verificado contra Supabase real (2026-11-02): matriz de roles completa en JSON, PDF y Excel; los archivos se generan y se abren (PDF con cabecera, %%EOF y título; Excel releído con ExcelJS, filas y totales coinciden). Admin y pastor: todos; secretario: miembros y asistencia; tesorero: ingresos. El reporte del coordinador ("su ministerio") queda pendiente: no hay vínculo cuenta-ministerio hasta coordinator_policies. El reporte de ingresos es solo agregado por mes y método: nunca muestra donantes ni conceptos, así que el pastor puede verlo.)
 
 ### RF-10. Configuración de la iglesia
 - [x] Registrar nombre de la iglesia.
