@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthProvider';
 import { ProtectedRoute } from '../auth/ProtectedRoute';
+import { AttendancePage } from '../features/attendance/AttendancePage';
 import { EventsPage } from '../features/events/EventsPage';
 import { MinistriesPage } from '../features/ministries/MinistriesPage';
 import { MembersPage } from '../features/members/MembersPage';
@@ -48,6 +49,14 @@ export function App(): React.JSX.Element {
             element={
               <ProtectedRoute roles={['admin', 'pastor', 'secretary', 'treasurer']}>
                 <EventsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/asistencia"
+            element={
+              <ProtectedRoute roles={['admin', 'pastor', 'secretary']}>
+                <AttendancePage />
               </ProtectedRoute>
             }
           />

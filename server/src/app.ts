@@ -5,6 +5,10 @@ import type { Env } from './config/env.js';
 import { createAuthenticate } from './middleware/authenticate.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { requireRole } from './middleware/requireRole.js';
+import {
+  createAttendanceRouter,
+  type AttendanceServiceFactory,
+} from './modules/attendance/attendance.routes.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
 import { createEventsRouter, type EventsServiceFactory } from './modules/events/events.routes.js';
 import {
@@ -29,6 +33,7 @@ export interface AppDeps {
   settingsFor: SettingsServiceFactory;
   ministriesFor: MinistriesServiceFactory;
   eventsFor: EventsServiceFactory;
+  attendanceFor: AttendanceServiceFactory;
 }
 
 export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Express {
@@ -49,6 +54,7 @@ export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Expre
 
   app.use('/api/ministries', authenticate, createMinistriesRouter(deps.ministriesFor));
   app.use('/api/events', authenticate, createEventsRouter(deps.eventsFor));
+  app.use('/api/attendance', authenticate, createAttendanceRouter(deps.attendanceFor));
   app.use(
     '/api/settings',
     authenticate,

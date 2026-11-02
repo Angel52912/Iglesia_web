@@ -42,11 +42,12 @@ Administrador, pastor, secretario, tesorero y coordinador.
 (Verificado manualmente contra Supabase real: migración aplicada, RLS y permisos por rol probados.)
 
 ### RF-03. Control de asistencia
-- [ ] Registrar asistencia a cultos, reuniones y actividades.
-- [ ] Seleccionar la fecha y el evento correspondiente.
-- [ ] Marcar miembros presentes y ausentes.
-- [ ] Consultar el historial de asistencia.
-- [ ] Generar reportes semanales y mensuales.
+- [x] Registrar asistencia a cultos, reuniones y actividades.
+- [x] Seleccionar la fecha y el evento correspondiente.
+- [x] Marcar miembros presentes y ausentes.
+- [x] Consultar el historial de asistencia.
+- [x] Generar reportes semanales y mensuales.
+(Pendiente: aplicar la migración `20261101000700_rf03_attendance.sql` y verificar RLS contra Supabase real; el registro por el coordinador llega con `coordinator_policies`.)
 
 ### RF-04. Gestión de eventos
 - [x] Crear eventos religiosos y administrativos.

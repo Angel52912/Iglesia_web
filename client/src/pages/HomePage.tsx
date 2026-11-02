@@ -18,6 +18,7 @@ export function HomePage(): React.JSX.Element {
       <nav className="nav">
         {MEMBER_ROLES.includes(user.role) && <Link to="/miembros">Miembros</Link>}
         {EVENT_ROLES.includes(user.role) && <Link to="/eventos">Eventos</Link>}
+        {MEMBER_ROLES.includes(user.role) && <Link to="/asistencia">Asistencia</Link>}
         {MEMBER_ROLES.includes(user.role) && <Link to="/ministerios">Ministerios</Link>}
         {user.role === 'admin' && <Link to="/usuarios">Usuarios</Link>}
         {user.role === 'admin' && <Link to="/configuracion">Configuración</Link>}

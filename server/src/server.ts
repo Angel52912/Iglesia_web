@@ -1,6 +1,8 @@
 import { createApp } from './app.js';
 import { loadEnv } from './config/env.js';
 import { createAdminClient, createUserClient } from './config/supabase.js';
+import { AttendanceService } from './modules/attendance/attendance.service.js';
+import { SupabaseAttendanceRepository } from './modules/attendance/supabaseAttendance.repository.js';
 import { SupabaseAuthenticator } from './modules/auth/supabaseAuthenticator.js';
 import { MembersService } from './modules/members/members.service.js';
 import { SupabaseMembersRepository } from './modules/members/supabaseMembers.repository.js';
@@ -34,6 +36,8 @@ const app = createApp(env, {
     new MinistriesService(new SupabaseMinistriesRepository(createUserClient(env, accessToken))),
   eventsFor: (accessToken) =>
     new EventsService(new SupabaseEventsRepository(createUserClient(env, accessToken))),
+  attendanceFor: (accessToken) =>
+    new AttendanceService(new SupabaseAttendanceRepository(createUserClient(env, accessToken))),
   settingsFor: (accessToken) =>
     new SettingsService(new SupabaseSettingsRepository(createUserClient(env, accessToken))),
 });

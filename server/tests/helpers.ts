@@ -2,6 +2,16 @@ import { randomUUID } from 'node:crypto';
 import type { Express } from 'express';
 import { createApp } from '../src/app.js';
 import { HttpError } from '../src/errors.js';
+import { AttendanceService } from '../src/modules/attendance/attendance.service.js';
+import { summarize } from '../src/modules/attendance/supabaseAttendance.repository.js';
+import type {
+  AttendanceEvent,
+  AttendanceMark,
+  AttendanceRecord,
+  AttendanceRepository,
+  AttendanceSummary,
+  HistoryFilters,
+} from '../src/modules/attendance/attendance.types.js';
 import { MembersService } from '../src/modules/members/members.service.js';
 import { EventsService } from '../src/modules/events/events.service.js';
 import type {
@@ -67,6 +77,8 @@ export interface Store {
   logos: LogoFile[];
   ministries: Map<string, MinistryDetail>;
   events: Map<string, ChurchEvent>;
+  // eventId -> (memberId -> presente)
+  attendance: Map<string, Map<string, boolean>>;
   profiles: Map<string, UserProfile>;
   blocked: Set<string>;
   authRoles: Map<string, AppRole>;
@@ -105,6 +117,7 @@ export function createStore(): Store {
     logos: [],
     ministries: new Map(),
     events: new Map(),
+    attendance: new Map(),
     profiles,
     blocked: new Set(),
     authRoles: new Map(),
@@ -402,6 +415,67 @@ export class FakeEventsRepository implements EventsRepository {
   }
 }
 
+export class FakeAttendanceRepository implements AttendanceRepository {
+  constructor(private readonly store: Store) {}
+
+  findEvent(eventId: string): Promise<AttendanceEvent | null> {
+    const event = this.store.events.get(eventId);
+    if (!event) return Promise.resolve(null);
+    return Promise.resolve({
+      id: event.id,
+      title: event.title,
+      eventDate: event.eventDate,
+      category: event.category,
+      status: event.status,
+    });
+  }
+
+  listForEvent(eventId: string): Promise<AttendanceRecord[]> {
+    const marks = this.store.attendance.get(eventId) ?? new Map<string, boolean>();
+    const records = [...marks].map(([memberId, present]) => ({
+      memberId,
+      fullName: this.store.members.get(memberId)?.fullName ?? '',
+      present,
+    }));
+    return Promise.resolve(records.sort((a, b) => a.fullName.localeCompare(b.fullName)));
+  }
+
+  save(eventId: string, marks: AttendanceMark[]): Promise<void> {
+    // Como la BD: un miembro que no existe da 400 y no se guarda nada.
+    for (const mark of marks) {
+      if (!this.store.members.has(mark.memberId))
+        throw new HttpError(400, 'Algún miembro no existe');
+    }
+    const current = this.store.attendance.get(eventId) ?? new Map<string, boolean>();
+    for (const mark of marks) current.set(mark.memberId, mark.present);
+    this.store.attendance.set(eventId, current);
+    return Promise.resolve();
+  }
+
+  summaries(filters: HistoryFilters): Promise<AttendanceSummary[]> {
+    const rows: Parameters<typeof summarize>[0] = [];
+    for (const [eventId, marks] of this.store.attendance) {
+      const event = this.store.events.get(eventId);
+      if (!event) continue;
+      if (filters.from !== undefined && event.eventDate < filters.from) continue;
+      if (filters.to !== undefined && event.eventDate > filters.to) continue;
+      if (filters.eventId !== undefined && eventId !== filters.eventId) continue;
+      for (const present of marks.values()) {
+        rows.push({
+          present,
+          events: {
+            id: event.id,
+            title: event.title,
+            event_date: event.eventDate,
+            category: event.category,
+          },
+        });
+      }
+    }
+    return Promise.resolve(summarize(rows));
+  }
+}
+
 export class FakeAuthAdmin implements AuthAdminPort {
   constructor(private readonly store: Store) {}
 
@@ -524,6 +598,7 @@ export function buildTestApp(): TestContext {
       membersFor: () => new MembersService(new FakeMembersRepository(store)),
       ministriesFor: () => new MinistriesService(new FakeMinistriesRepository(store)),
       eventsFor: () => new EventsService(new FakeEventsRepository(store)),
+      attendanceFor: () => new AttendanceService(new FakeAttendanceRepository(store)),
       settingsFor: () => new SettingsService(new FakeSettingsRepository(store)),
     },
   );
