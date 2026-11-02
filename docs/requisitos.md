@@ -110,8 +110,8 @@ Administrador, pastor, secretario, tesorero y coordinador.
 > Propuestas: confirmar con el equipo y con los usuarios reales.
 
 ### RF-11. PWA
-- [ ] Manifest e íconos; app instalable en celular.
-- [ ] Service worker con caché básica de la interfaz.
+- [x] Manifest e íconos; app instalable en celular. (íconos generados con `scripts/gen-pwa-icons.mjs`; probado el manifest, no la instalación en un dispositivo real)
+- [x] Service worker con caché básica de la interfaz. (solo precaché de la interfaz; la API no se cachea)
 - [ ] Funciona bien en pantallas pequeñas (registro de asistencia desde el celular).
 
 ### RF-12. Integración con API externa
