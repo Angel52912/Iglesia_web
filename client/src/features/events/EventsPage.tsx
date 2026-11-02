@@ -9,6 +9,7 @@ import {
   EVENT_TYPE_LABELS,
   createEvent,
   listEvents,
+  sendEventReminder,
   updateEvent,
   type ChurchEvent,
   type EventCategory,
@@ -203,6 +204,28 @@ export function EventsPage(): React.JSX.Element {
     );
   }
 
+  function handleRemind(event: ChurchEvent): void {
+    setActionError(null);
+    setMessage(null);
+    setSaving(true);
+    sendEventReminder(event.id)
+      .then((result) => {
+        const extras = [
+          result.withoutEmail > 0 ? `${String(result.withoutEmail)} sin correo` : '',
+          result.failed > 0 ? `${String(result.failed)} con error` : '',
+        ].filter(Boolean);
+        setMessage(
+          `Recordatorios enviados: ${String(result.sent)}${extras.length > 0 ? ` (${extras.join(', ')})` : ''}`,
+        );
+      })
+      .catch((error: unknown) => {
+        setActionError(errorText(error));
+      })
+      .finally(() => {
+        setSaving(false);
+      });
+  }
+
   function setField<K extends keyof EventPayload>(field: K, value: EventPayload[K]): void {
     setForm((current) => ({ ...current, [field]: value }));
   }
@@ -311,6 +334,18 @@ export function EventsPage(): React.JSX.Element {
                   >
                     Editar
                   </button>
+                  {event.status === 'scheduled' && event.responsibles.length > 0 && (
+                    <button
+                      type="button"
+                      className="button--secondary"
+                      disabled={saving}
+                      onClick={() => {
+                        handleRemind(event);
+                      }}
+                    >
+                      Enviar recordatorio
+                    </button>
+                  )}
                   <button
                     type="button"
                     disabled={saving}

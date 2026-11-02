@@ -75,6 +75,16 @@ export async function createEvent(payload: EventPayload): Promise<ChurchEvent> {
   return event;
 }
 
+export interface ReminderResult {
+  sent: number;
+  withoutEmail: number;
+  failed: number;
+}
+
+export function sendEventReminder(id: string): Promise<ReminderResult> {
+  return apiRequest<ReminderResult>(`/api/reminders/events/${id}`, { method: 'POST' });
+}
+
 export async function updateEvent(
   id: string,
   payload: Partial<EventPayload> & { status?: EventStatus },

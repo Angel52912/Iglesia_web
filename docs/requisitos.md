@@ -115,7 +115,7 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [ ] Funciona bien en pantallas pequeñas (registro de asistencia desde el celular).
 
 ### RF-12. Integración con API externa
-- [ ] Envío de correos (o WhatsApp) para recordatorios y recuperación de contraseña.
+- [ ] Envío de correos (o WhatsApp) para recordatorios y recuperación de contraseña. (Recordatorios a responsables: `POST /api/reminders/events/:id` vía Resend, probado con fetch simulado; falta probar con `RESEND_API_KEY` real. Recuperación: la envía Supabase Auth; falta configurar SMTP propio en el panel de Supabase.)
 - [ ] Opcional: sincronizar eventos con Google Calendar.
 
 ### RF-13. Automatización con n8n

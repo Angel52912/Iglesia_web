@@ -32,6 +32,10 @@ import {
   type MembersServiceFactory,
 } from './modules/members/members.routes.js';
 import {
+  createRemindersRouter,
+  type RemindersServiceFactory,
+} from './modules/reminders/reminders.routes.js';
+import {
   createReportsRouter,
   type ReportsServiceFactory,
 } from './modules/reports/reports.routes.js';
@@ -54,6 +58,7 @@ export interface AppDeps {
   announcementsFor: AnnouncementsServiceFactory;
   dashboardFor: DashboardServiceFactory;
   reportsFor: ReportsServiceFactory;
+  remindersFor: RemindersServiceFactory;
 }
 
 export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Express {
@@ -79,6 +84,7 @@ export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Expre
   app.use('/api/announcements', authenticate, createAnnouncementsRouter(deps.announcementsFor));
   app.use('/api/dashboard', authenticate, createDashboardRouter(deps.dashboardFor));
   app.use('/api/reports', authenticate, createReportsRouter(deps.reportsFor));
+  app.use('/api/reminders', authenticate, createRemindersRouter(deps.remindersFor));
   app.use(
     '/api/settings',
     authenticate,

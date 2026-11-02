@@ -17,6 +17,12 @@ import { EventsService } from './modules/events/events.service.js';
 import { SupabaseEventsRepository } from './modules/events/supabaseEvents.repository.js';
 import { MinistriesService } from './modules/ministries/ministries.service.js';
 import { SupabaseMinistriesRepository } from './modules/ministries/supabaseMinistries.repository.js';
+import { RemindersService } from './modules/reminders/reminders.service.js';
+import {
+  ResendEmailSender,
+  UnconfiguredEmailSender,
+} from './modules/reminders/resendEmailSender.js';
+import { SupabaseRemindersRepository } from './modules/reminders/supabaseReminders.repository.js';
 import { SettingsService } from './modules/settings/settings.service.js';
 import { SupabaseSettingsRepository } from './modules/settings/supabaseSettings.repository.js';
 import { SupabaseAuthAdmin } from './modules/users/supabaseAuthAdmin.js';
@@ -28,6 +34,9 @@ const env = loadEnv();
 const adminClient = createAdminClient(env);
 const authAdmin = new SupabaseAuthAdmin(adminClient);
 const profileWriter = new SupabaseProfileWriter(adminClient);
+const emailSender = env.RESEND_API_KEY
+  ? new ResendEmailSender(env.RESEND_API_KEY, env.EMAIL_FROM)
+  : new UnconfiguredEmailSender();
 
 const app = createApp(env, {
   authenticator: new SupabaseAuthenticator(env),
@@ -62,6 +71,11 @@ const app = createApp(env, {
       new DonationsService(new SupabaseDonationsRepository(db)),
     );
   },
+  remindersFor: (accessToken) =>
+    new RemindersService(
+      new SupabaseRemindersRepository(createUserClient(env, accessToken)),
+      emailSender,
+    ),
   settingsFor: (accessToken) =>
     new SettingsService(new SupabaseSettingsRepository(createUserClient(env, accessToken))),
 });

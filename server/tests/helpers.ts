@@ -45,6 +45,13 @@ import type {
   EventsRepository,
   UpdateEventInput,
 } from '../src/modules/events/events.types.js';
+import { RemindersService } from '../src/modules/reminders/reminders.service.js';
+import type {
+  EmailMessage,
+  EmailSender,
+  ReminderEvent,
+  RemindersRepository,
+} from '../src/modules/reminders/reminders.types.js';
 import { MinistriesService } from '../src/modules/ministries/ministries.service.js';
 import type {
   CreateMinistryInput,
@@ -105,6 +112,8 @@ export interface Store {
   attendance: Map<string, Map<string, boolean>>;
   donations: Map<string, Donation>;
   announcements: Map<string, Announcement>;
+  emails: EmailMessage[];
+  failEmailTo: Set<string>;
   profiles: Map<string, UserProfile>;
   blocked: Set<string>;
   authRoles: Map<string, AppRole>;
@@ -146,6 +155,8 @@ export function createStore(): Store {
     attendance: new Map(),
     donations: new Map(),
     announcements: new Map(),
+    emails: [],
+    failEmailTo: new Set(),
     profiles,
     blocked: new Set(),
     authRoles: new Map(),
@@ -440,6 +451,39 @@ export class FakeEventsRepository implements EventsRepository {
     };
     this.store.events.set(id, updated);
     return Promise.resolve(updated);
+  }
+}
+
+export class FakeRemindersRepository implements RemindersRepository {
+  constructor(private readonly store: Store) {}
+
+  findEvent(eventId: string): Promise<ReminderEvent | null> {
+    const event = this.store.events.get(eventId);
+    if (!event) return Promise.resolve(null);
+    return Promise.resolve({
+      id: event.id,
+      title: event.title,
+      eventDate: event.eventDate,
+      startTime: event.startTime,
+      location: event.location,
+      status: event.status,
+      responsibles: event.responsibles.map((r) => ({
+        fullName: r.fullName,
+        email: this.store.members.get(r.id)?.email ?? null,
+      })),
+    });
+  }
+}
+
+export class FakeEmailSender implements EmailSender {
+  constructor(private readonly store: Store) {}
+
+  send(message: EmailMessage): Promise<void> {
+    if (this.store.failEmailTo.has(message.to)) {
+      return Promise.reject(new Error('Resend respondió 500'));
+    }
+    this.store.emails.push(message);
+    return Promise.resolve();
   }
 }
 
@@ -830,6 +874,8 @@ export function buildTestApp(): TestContext {
             new FakeDonationsRepository(store, token.replace('token-', '') as AppRole),
           ),
         ),
+      remindersFor: () =>
+        new RemindersService(new FakeRemindersRepository(store), new FakeEmailSender(store)),
       settingsFor: () => new SettingsService(new FakeSettingsRepository(store)),
     },
   );
