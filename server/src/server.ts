@@ -3,6 +3,9 @@ import { loadEnv } from './config/env.js';
 import { createAdminClient, createUserClient } from './config/supabase.js';
 import { AttendanceService } from './modules/attendance/attendance.service.js';
 import { SupabaseAttendanceRepository } from './modules/attendance/supabaseAttendance.repository.js';
+import { DashboardService } from './modules/dashboard/dashboard.service.js';
+import { SupabaseDashboardRepository } from './modules/dashboard/supabaseDashboard.repository.js';
+import { ReportsService } from './modules/reports/reports.service.js';
 import { DonationsService } from './modules/donations/donations.service.js';
 import { SupabaseDonationsRepository } from './modules/donations/supabaseDonations.repository.js';
 import { SupabaseAuthenticator } from './modules/auth/supabaseAuthenticator.js';
@@ -48,6 +51,17 @@ const app = createApp(env, {
     new AnnouncementsService(
       new SupabaseAnnouncementsRepository(createUserClient(env, accessToken)),
     ),
+  dashboardFor: (accessToken) =>
+    new DashboardService(new SupabaseDashboardRepository(createUserClient(env, accessToken))),
+  reportsFor: (accessToken) => {
+    const db = createUserClient(env, accessToken);
+    return new ReportsService(
+      new MembersService(new SupabaseMembersRepository(db)),
+      new AttendanceService(new SupabaseAttendanceRepository(db)),
+      new MinistriesService(new SupabaseMinistriesRepository(db)),
+      new DonationsService(new SupabaseDonationsRepository(db)),
+    );
+  },
   settingsFor: (accessToken) =>
     new SettingsService(new SupabaseSettingsRepository(createUserClient(env, accessToken))),
 });

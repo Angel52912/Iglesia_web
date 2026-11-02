@@ -7,6 +7,7 @@ import { DonationsPage } from '../features/donations/DonationsPage';
 import { EventsPage } from '../features/events/EventsPage';
 import { MinistriesPage } from '../features/ministries/MinistriesPage';
 import { MembersPage } from '../features/members/MembersPage';
+import { ReportsPage } from '../features/reports/ReportsPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { UsersPage } from '../features/users/UsersPage';
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
@@ -83,6 +84,14 @@ export function App(): React.JSX.Element {
             element={
               <ProtectedRoute roles={['admin', 'pastor', 'secretary', 'coordinator']}>
                 <AnnouncementsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reportes"
+            element={
+              <ProtectedRoute roles={['admin', 'pastor', 'secretary', 'treasurer']}>
+                <ReportsPage />
               </ProtectedRoute>
             }
           />

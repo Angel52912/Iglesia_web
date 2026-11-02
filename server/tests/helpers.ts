@@ -20,6 +20,12 @@ import type {
   CreateAnnouncementInput,
   UpdateAnnouncementInput,
 } from '../src/modules/announcements/announcements.types.js';
+import { DashboardService } from '../src/modules/dashboard/dashboard.service.js';
+import type {
+  DashboardData,
+  DashboardRepository,
+} from '../src/modules/dashboard/dashboard.types.js';
+import { ReportsService } from '../src/modules/reports/reports.service.js';
 import { DonationsService } from '../src/modules/donations/donations.service.js';
 import type {
   CreateDonationInput,
@@ -523,7 +529,10 @@ export class FakeDonationsRepository implements DonationsRepository {
   }
 
   listDonors(): Promise<DonorRef[]> {
-    const donors = [...this.store.members.values()].map((m) => ({ id: m.id, fullName: m.fullName }));
+    const donors = [...this.store.members.values()].map((m) => ({
+      id: m.id,
+      fullName: m.fullName,
+    }));
     return Promise.resolve(donors.sort((a, b) => a.fullName.localeCompare(b.fullName)));
   }
 
@@ -583,6 +592,58 @@ export class FakeDonationsRepository implements DonationsRepository {
 
   remove(id: string): Promise<boolean> {
     return Promise.resolve(this.store.donations.delete(id));
+  }
+}
+
+// Imita dashboard_stats: general para todos menos tesorero; ingresos solo admin, pastor y tesorero.
+export class FakeDashboardRepository implements DashboardRepository {
+  constructor(
+    private readonly store: Store,
+    private readonly role: AppRole,
+  ) {}
+
+  stats(): Promise<DashboardData> {
+    const today = new Date().toISOString().slice(0, 10);
+    const general =
+      this.role === 'treasurer'
+        ? null
+        : (() => {
+            const marks = [...this.store.attendance.values()].flatMap((m) => [...m.values()]);
+            const upcoming = [...this.store.events.values()]
+              .filter((e) => e.status === 'scheduled' && e.eventDate >= today)
+              .sort((a, b) => a.eventDate.localeCompare(b.eventDate));
+            return {
+              activeMembers: [...this.store.members.values()].filter((m) => m.active).length,
+              ministries: [...this.store.ministries.values()].filter((m) => m.active).length,
+              attendance: { present: marks.filter(Boolean).length, total: marks.length },
+              upcomingCount: upcoming.length,
+              upcomingEvents: upcoming.slice(0, 5).map((e) => ({
+                id: e.id,
+                title: e.title,
+                eventDate: e.eventDate,
+                startTime: e.startTime,
+                location: e.location,
+              })),
+              attendanceByEvent: [],
+            };
+          })();
+    const canSeeIncome =
+      this.role === 'admin' || this.role === 'pastor' || this.role === 'treasurer';
+    const month = today.slice(0, 7);
+    const monthTotal = [...this.store.donations.values()]
+      .filter((d) => d.donatedOn.startsWith(month))
+      .reduce((sum, d) => sum + d.amount, 0);
+    const income = canSeeIncome
+      ? {
+          month,
+          monthTotal,
+          monthDonations: [...this.store.donations.values()].filter((d) =>
+            d.donatedOn.startsWith(month),
+          ).length,
+          byMonth: [{ month, total: monthTotal }],
+        }
+      : null;
+    return Promise.resolve({ general, income });
   }
 }
 
@@ -756,6 +817,19 @@ export function buildTestApp(): TestContext {
           new FakeDonationsRepository(store, token.replace('token-', '') as AppRole),
         ),
       announcementsFor: () => new AnnouncementsService(new FakeAnnouncementsRepository(store)),
+      dashboardFor: (token) =>
+        new DashboardService(
+          new FakeDashboardRepository(store, token.replace('token-', '') as AppRole),
+        ),
+      reportsFor: (token) =>
+        new ReportsService(
+          new MembersService(new FakeMembersRepository(store)),
+          new AttendanceService(new FakeAttendanceRepository(store)),
+          new MinistriesService(new FakeMinistriesRepository(store)),
+          new DonationsService(
+            new FakeDonationsRepository(store, token.replace('token-', '') as AppRole),
+          ),
+        ),
       settingsFor: () => new SettingsService(new FakeSettingsRepository(store)),
     },
   );

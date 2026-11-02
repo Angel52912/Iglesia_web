@@ -13,6 +13,10 @@ import {
   createAnnouncementsRouter,
   type AnnouncementsServiceFactory,
 } from './modules/announcements/announcements.routes.js';
+import {
+  createDashboardRouter,
+  type DashboardServiceFactory,
+} from './modules/dashboard/dashboard.routes.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
 import {
   createDonationsRouter,
@@ -27,6 +31,10 @@ import {
   createMembersRouter,
   type MembersServiceFactory,
 } from './modules/members/members.routes.js';
+import {
+  createReportsRouter,
+  type ReportsServiceFactory,
+} from './modules/reports/reports.routes.js';
 import {
   createSettingsRouter,
   type SettingsServiceFactory,
@@ -44,6 +52,8 @@ export interface AppDeps {
   attendanceFor: AttendanceServiceFactory;
   donationsFor: DonationsServiceFactory;
   announcementsFor: AnnouncementsServiceFactory;
+  dashboardFor: DashboardServiceFactory;
+  reportsFor: ReportsServiceFactory;
 }
 
 export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Express {
@@ -67,6 +77,8 @@ export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Expre
   app.use('/api/attendance', authenticate, createAttendanceRouter(deps.attendanceFor));
   app.use('/api/donations', authenticate, createDonationsRouter(deps.donationsFor));
   app.use('/api/announcements', authenticate, createAnnouncementsRouter(deps.announcementsFor));
+  app.use('/api/dashboard', authenticate, createDashboardRouter(deps.dashboardFor));
+  app.use('/api/reports', authenticate, createReportsRouter(deps.reportsFor));
   app.use(
     '/api/settings',
     authenticate,

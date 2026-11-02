@@ -196,3 +196,68 @@ select:disabled {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Panel principal (RF-08): tarjetas de cifras y barras horizontales sin librerías. */
+.cards--stats {
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+
+.stat {
+  font-size: 1.75rem;
+}
+
+.bars {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.bars__row {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.bars__track {
+  display: block;
+  height: 0.75rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.bars__fill {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+}
+
+.bars__value {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* Reportes (RF-09): la tabla se desplaza dentro de su contenedor en pantallas pequeñas. */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block: 1rem;
+}

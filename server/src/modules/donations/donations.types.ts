@@ -80,3 +80,10 @@ export interface DonationsRepository {
   update(id: string, patch: UpdateDonationInput): Promise<Donation | null>;
   remove(id: string): Promise<boolean>;
 }
+
+// Total de un rango arbitrario de fechas (sin donantes ni conceptos).
+export interface RangeSummary {
+  total: number;
+  donations: number;
+  byMethod: SummaryGroup[];
+}

@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { ROLE_LABELS, type Role } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
+import { DashboardPanel } from '../features/dashboard/DashboardPanel';
 
 const MEMBER_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary'];
 const EVENT_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary', 'treasurer'];
 const DONATION_ROLES: readonly Role[] = ['admin', 'pastor', 'treasurer'];
+const REPORT_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary', 'treasurer'];
 const ANNOUNCEMENT_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary', 'coordinator'];
 
 export function HomePage(): React.JSX.Element {
@@ -24,9 +26,11 @@ export function HomePage(): React.JSX.Element {
         {MEMBER_ROLES.includes(user.role) && <Link to="/ministerios">Ministerios</Link>}
         {DONATION_ROLES.includes(user.role) && <Link to="/donaciones">Donaciones</Link>}
         {ANNOUNCEMENT_ROLES.includes(user.role) && <Link to="/comunicados">Comunicados</Link>}
+        {REPORT_ROLES.includes(user.role) && <Link to="/reportes">Reportes</Link>}
         {user.role === 'admin' && <Link to="/usuarios">Usuarios</Link>}
         {user.role === 'admin' && <Link to="/configuracion">Configuración</Link>}
       </nav>
+      <DashboardPanel />
       <button
         type="button"
         onClick={() => {

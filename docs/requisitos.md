@@ -81,6 +81,7 @@ Administrador, pastor, secretario, tesorero y coordinador.
 (Verificado contra Supabase real con los repositorios reales (38 comprobaciones, 2026-11-02): admin, pastor y secretario crean, editan, leen y eliminan; el coordinador lee pero no crea, edita ni elimina; el tesorero no lee ni escribe (RLS filtra, 0 filas); título o cuerpo vacíos o demasiado largos se rechazan en la API (zod) y en la BD (CHECK). el tesorero no tiene acceso, según la matriz. Los próximos eventos solo se muestran a admin, pastor y secretario; el coordinador los verá cuando existan sus políticas.)
 
 ### RF-08. Panel principal (Dashboard)
+(Implementado y probado con repositorios simulados, API y componente; casillas sin marcar hasta aplicar la migración `20261101001000_rf08_dashboard_stats.sql` con `npm run db:push` y verificar la función `dashboard_stats` contra Supabase real.)
 - [ ] Total de miembros activos.
 - [ ] Eventos próximos.
 - [ ] Número de asistencias registradas.
@@ -89,11 +90,12 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [ ] Gráficas estadísticas.
 
 ### RF-09. Reportes
-- [ ] Reporte general de miembros.
-- [ ] Reporte de asistencia por evento.
-- [ ] Reporte de participación por ministerio.
-- [ ] Reporte de ingresos por periodo.
-- [ ] Exportación de reportes a PDF o Excel.
+- [x] Reporte general de miembros.
+- [x] Reporte de asistencia por evento.
+- [x] Reporte de participación por ministerio.
+- [x] Reporte de ingresos por periodo.
+- [x] Exportación de reportes a PDF o Excel.
+(Probado con repositorios simulados (API, permisos por rol y generación de PDF/XLSX); falta verificar contra Supabase real. Admin y pastor: todos; secretario: miembros y asistencia; tesorero: ingresos. El reporte del coordinador ("su ministerio") queda pendiente: no hay vínculo cuenta-ministerio hasta coordinator_policies. El reporte de ingresos es solo agregado por mes y método: nunca muestra donantes ni conceptos, así que el pastor puede verlo.)
 
 ### RF-10. Configuración de la iglesia
 - [x] Registrar nombre de la iglesia.

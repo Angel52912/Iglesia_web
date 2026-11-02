@@ -58,3 +58,30 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
   return payload as T;
 }
+
+export interface DownloadedFile {
+  blob: Blob;
+  filename: string;
+}
+
+// Descarga un archivo (PDF, Excel) con el token del usuario; el nombre viene de Content-Disposition.
+export async function apiDownload(path: string): Promise<DownloadedFile> {
+  const token = (await getSupabase().auth.getSession()).data.session?.access_token;
+  const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, { headers });
+  } catch {
+    throw new ApiError(0, 'No se pudo conectar con el servidor');
+  }
+  if (!response.ok) {
+    const payload: unknown = await response.json().catch(() => null);
+    throw new ApiError(response.status, extractMessage(payload) ?? 'Ocurrió un error inesperado');
+  }
+  const disposition = response.headers.get('Content-Disposition') ?? '';
+  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? 'reporte';
+  return { blob: await response.blob(), filename };
+}

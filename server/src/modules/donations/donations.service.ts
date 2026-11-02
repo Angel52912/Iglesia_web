@@ -7,6 +7,7 @@ import type {
   DonationsRepository,
   DonationSummary,
   DonorRef,
+  RangeSummary,
   SummaryGroup,
   SummaryRow,
   UpdateDonationInput,
@@ -68,6 +69,17 @@ export class DonationsService {
 
   async remove(id: string): Promise<void> {
     if (!(await this.donations.remove(id))) throw new HttpError(404, 'Donación no encontrada');
+  }
+
+  // Total y desglose por método de cualquier rango (base del reporte de ingresos).
+  async rangeSummary(from: string, to: string): Promise<RangeSummary> {
+    const rows = await this.donations.summaryRows(from, to);
+    const cents = rows.reduce((sum, row) => sum + toCents(row.total), 0);
+    return {
+      total: fromCents(cents),
+      donations: rows.reduce((sum, row) => sum + row.donations, 0),
+      byMethod: groupBy(rows, (row) => row.method),
+    };
   }
 
   // Resumen mensual agregado: lo pueden ver también roles sin acceso a las filas (pastor).
