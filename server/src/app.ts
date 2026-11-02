@@ -10,6 +10,10 @@ import {
   type AttendanceServiceFactory,
 } from './modules/attendance/attendance.routes.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
+import {
+  createDonationsRouter,
+  type DonationsServiceFactory,
+} from './modules/donations/donations.routes.js';
 import { createEventsRouter, type EventsServiceFactory } from './modules/events/events.routes.js';
 import {
   createMinistriesRouter,
@@ -34,6 +38,7 @@ export interface AppDeps {
   ministriesFor: MinistriesServiceFactory;
   eventsFor: EventsServiceFactory;
   attendanceFor: AttendanceServiceFactory;
+  donationsFor: DonationsServiceFactory;
 }
 
 export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Express {
@@ -55,6 +60,7 @@ export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Expre
   app.use('/api/ministries', authenticate, createMinistriesRouter(deps.ministriesFor));
   app.use('/api/events', authenticate, createEventsRouter(deps.eventsFor));
   app.use('/api/attendance', authenticate, createAttendanceRouter(deps.attendanceFor));
+  app.use('/api/donations', authenticate, createDonationsRouter(deps.donationsFor));
   app.use(
     '/api/settings',
     authenticate,

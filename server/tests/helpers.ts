@@ -12,6 +12,16 @@ import type {
   AttendanceSummary,
   HistoryFilters,
 } from '../src/modules/attendance/attendance.types.js';
+import { DonationsService } from '../src/modules/donations/donations.service.js';
+import type {
+  CreateDonationInput,
+  Donation,
+  DonationFilters,
+  DonationsRepository,
+  DonorRef,
+  SummaryRow,
+  UpdateDonationInput,
+} from '../src/modules/donations/donations.types.js';
 import { MembersService } from '../src/modules/members/members.service.js';
 import { EventsService } from '../src/modules/events/events.service.js';
 import type {
@@ -79,6 +89,7 @@ export interface Store {
   events: Map<string, ChurchEvent>;
   // eventId -> (memberId -> presente)
   attendance: Map<string, Map<string, boolean>>;
+  donations: Map<string, Donation>;
   profiles: Map<string, UserProfile>;
   blocked: Set<string>;
   authRoles: Map<string, AppRole>;
@@ -118,6 +129,7 @@ export function createStore(): Store {
     ministries: new Map(),
     events: new Map(),
     attendance: new Map(),
+    donations: new Map(),
     profiles,
     blocked: new Set(),
     authRoles: new Map(),
@@ -476,6 +488,88 @@ export class FakeAttendanceRepository implements AttendanceRepository {
   }
 }
 
+export class FakeDonationsRepository implements DonationsRepository {
+  constructor(private readonly store: Store) {}
+
+  private donorNameFor(memberId: string | null): string | null {
+    if (memberId === null) return null;
+    const member = this.store.members.get(memberId);
+    // Como la BD: un miembro que no existe da 400.
+    if (!member) throw new HttpError(400, 'Hay un dato relacionado que no existe');
+    return member.fullName;
+  }
+
+  list(filters: DonationFilters): Promise<Donation[]> {
+    const found = [...this.store.donations.values()].filter(
+      (d) =>
+        (filters.from === undefined || d.donatedOn >= filters.from) &&
+        (filters.to === undefined || d.donatedOn <= filters.to) &&
+        (filters.memberId === undefined || d.memberId === filters.memberId),
+    );
+    return Promise.resolve(found.sort((a, b) => b.donatedOn.localeCompare(a.donatedOn)));
+  }
+
+  listDonors(): Promise<DonorRef[]> {
+    const donors = [...this.store.members.values()].map((m) => ({ id: m.id, fullName: m.fullName }));
+    return Promise.resolve(donors.sort((a, b) => a.fullName.localeCompare(b.fullName)));
+  }
+
+  summaryRows(from: string, to: string): Promise<SummaryRow[]> {
+    const groups = new Map<string, SummaryRow>();
+    for (const d of this.store.donations.values()) {
+      if (d.donatedOn < from || d.donatedOn > to) continue;
+      const key = `${d.method}|${d.concept}`;
+      const current = groups.get(key) ?? {
+        method: d.method,
+        concept: d.concept,
+        total: 0,
+        donations: 0,
+      };
+      groups.set(key, {
+        ...current,
+        total: current.total + d.amount,
+        donations: current.donations + 1,
+      });
+    }
+    return Promise.resolve([...groups.values()]);
+  }
+
+  create(input: CreateDonationInput): Promise<Donation> {
+    const donation: Donation = {
+      id: randomUUID(),
+      memberId: input.memberId,
+      donorName: this.donorNameFor(input.memberId),
+      donatedOn: input.donatedOn,
+      amount: input.amount,
+      concept: input.concept,
+      method: input.method,
+    };
+    this.store.donations.set(donation.id, donation);
+    return Promise.resolve(donation);
+  }
+
+  update(id: string, patch: UpdateDonationInput): Promise<Donation | null> {
+    const current = this.store.donations.get(id);
+    if (!current) return Promise.resolve(null);
+    const memberId = patch.memberId === undefined ? current.memberId : patch.memberId;
+    const updated: Donation = {
+      ...current,
+      memberId,
+      donorName: this.donorNameFor(memberId),
+      donatedOn: patch.donatedOn ?? current.donatedOn,
+      amount: patch.amount ?? current.amount,
+      concept: patch.concept ?? current.concept,
+      method: patch.method ?? current.method,
+    };
+    this.store.donations.set(id, updated);
+    return Promise.resolve(updated);
+  }
+
+  remove(id: string): Promise<boolean> {
+    return Promise.resolve(this.store.donations.delete(id));
+  }
+}
+
 export class FakeAuthAdmin implements AuthAdminPort {
   constructor(private readonly store: Store) {}
 
@@ -599,6 +693,7 @@ export function buildTestApp(): TestContext {
       ministriesFor: () => new MinistriesService(new FakeMinistriesRepository(store)),
       eventsFor: () => new EventsService(new FakeEventsRepository(store)),
       attendanceFor: () => new AttendanceService(new FakeAttendanceRepository(store)),
+      donationsFor: () => new DonationsService(new FakeDonationsRepository(store)),
       settingsFor: () => new SettingsService(new FakeSettingsRepository(store)),
     },
   );

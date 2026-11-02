@@ -4,6 +4,7 @@ import { useAuth } from '../auth/useAuth';
 
 const MEMBER_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary'];
 const EVENT_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary', 'treasurer'];
+const DONATION_ROLES: readonly Role[] = ['admin', 'pastor', 'treasurer'];
 
 export function HomePage(): React.JSX.Element {
   const { user, signOut } = useAuth();
@@ -20,6 +21,7 @@ export function HomePage(): React.JSX.Element {
         {EVENT_ROLES.includes(user.role) && <Link to="/eventos">Eventos</Link>}
         {MEMBER_ROLES.includes(user.role) && <Link to="/asistencia">Asistencia</Link>}
         {MEMBER_ROLES.includes(user.role) && <Link to="/ministerios">Ministerios</Link>}
+        {DONATION_ROLES.includes(user.role) && <Link to="/donaciones">Donaciones</Link>}
         {user.role === 'admin' && <Link to="/usuarios">Usuarios</Link>}
         {user.role === 'admin' && <Link to="/configuracion">Configuración</Link>}
       </nav>

@@ -65,12 +65,13 @@ Administrador, pastor, secretario, tesorero y coordinador.
   (Verificado contra Supabase real con los repositorios reales: migraciones aplicadas, 409 por nombre repetido, 400 por miembro/ministerio inexistente, RLS por rol. La API se prueba también con repositorios simulados. Coordinador sin acceso hasta la migración `coordinator_policies`; el tesorero ve los eventos sin responsables ni ministerio porque RLS le oculta miembros y ministerios.)
 
 ### RF-06. Gestión de donaciones y aportaciones
-- [ ] Registrar aportaciones económicas.
-- [ ] Capturar fecha, monto, concepto y método de recepción.
-- [ ] Consultar ingresos por periodos.
-- [ ] Generar resumen mensual.
-- [ ] Restringir la información financiera a personal autorizado.
-- [ ] Permitir registros anónimos sin asociarlos obligatoriamente a una persona.
+- [x] Registrar aportaciones económicas.
+- [x] Capturar fecha, monto, concepto y método de recepción.
+- [x] Consultar ingresos por periodos.
+- [x] Generar resumen mensual.
+- [x] Restringir la información financiera a personal autorizado.
+- [x] Permitir registros anónimos sin asociarlos obligatoriamente a una persona.
+  (API probada con repositorios simulados: roles 401/403, validaciones, total en centavos y resumen por mes. Pastor solo recibe el resumen agregado (`donation_summary`). Pendiente: aplicar la migración `20261101000800_rf06_donations.sql` con `npm run db:push` y verificar RLS contra Supabase real. El tesorero no lee `members`: elige donante con `donation_donors()`, que solo expone id y nombre a admin y tesorero.)
 
 ### RF-07. Comunicados y anuncios
 - [ ] Publicar anuncios para los miembros.
