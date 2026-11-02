@@ -47,7 +47,7 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [x] Marcar miembros presentes y ausentes.
 - [x] Consultar el historial de asistencia.
 - [x] Generar reportes semanales y mensuales.
-(Pendiente: aplicar la migración `20261101000700_rf03_attendance.sql` y verificar RLS contra Supabase real; el registro por el coordinador llega con `coordinator_policies`.)
+(Verificado contra Supabase real con `npm run db:verify-attendance`: admin y secretario guardan y corrigen; pastor lee sin escribir; tesorero y coordinador no leen; 409 en evento cancelado; reportes semanal y mensual con eventos en el último día del mes. El registro por el coordinador llega con `coordinator_policies`.)
 
 ### RF-04. Gestión de eventos
 - [x] Crear eventos religiosos y administrativos.

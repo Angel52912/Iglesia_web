@@ -21,7 +21,8 @@
     "db:new": "supabase migration new",
     "db:push": "supabase db push",
     "db:types": "node scripts/gen-db-types.mjs",
-    "db:seed-users": "tsx --env-file=server/.env scripts/seed-users.ts"
+    "db:seed-users": "tsx --env-file=server/.env scripts/seed-users.ts",
+    "db:verify-attendance": "tsx --env-file=server/.env scripts/verify-attendance.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

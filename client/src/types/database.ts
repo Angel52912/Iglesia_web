@@ -39,6 +39,55 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance_records: {
+        Row: {
+          created_at: string
+          event_id: string
+          member_id: string
+          present: boolean
+          recorded_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          member_id: string
+          present: boolean
+          recorded_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          member_id?: string
+          present?: boolean
+          recorded_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       church_settings: {
         Row: {
           address: string | null
@@ -68,6 +117,99 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      event_responsibles: {
+        Row: {
+          event_id: string
+          member_id: string
+        }
+        Insert: {
+          event_id: string
+          member_id: string
+        }
+        Update: {
+          event_id?: string
+          member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_responsibles_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_responsibles_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          category: Database["public"]["Enums"]["event_category"]
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_date: string
+          id: string
+          location: string | null
+          ministry_id: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["event_status"]
+          title: string
+          type: Database["public"]["Enums"]["event_type"]
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["event_category"]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_date: string
+          id?: string
+          location?: string | null
+          ministry_id?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["event_status"]
+          title: string
+          type: Database["public"]["Enums"]["event_type"]
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["event_category"]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_date?: string
+          id?: string
+          location?: string | null
+          ministry_id?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["event_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["event_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_ministry_id_fkey"
+            columns: ["ministry_id"]
+            isOneToOne: false
+            referencedRelation: "ministries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meeting_schedules: {
         Row: {
@@ -126,6 +268,96 @@ export type Database = {
         }
         Relationships: []
       }
+      ministries: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ministry_coordinators: {
+        Row: {
+          member_id: string
+          ministry_id: string
+        }
+        Insert: {
+          member_id: string
+          ministry_id: string
+        }
+        Update: {
+          member_id?: string
+          ministry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ministry_coordinators_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ministry_coordinators_ministry_id_fkey"
+            columns: ["ministry_id"]
+            isOneToOne: false
+            referencedRelation: "ministries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ministry_members: {
+        Row: {
+          joined_at: string
+          member_id: string
+          ministry_id: string
+        }
+        Insert: {
+          joined_at?: string
+          member_id: string
+          ministry_id: string
+        }
+        Update: {
+          joined_at?: string
+          member_id?: string
+          ministry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ministry_members_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ministry_members_ministry_id_fkey"
+            columns: ["ministry_id"]
+            isOneToOne: false
+            referencedRelation: "ministries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active: boolean
@@ -172,6 +404,9 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "pastor" | "secretary" | "treasurer" | "coordinator"
+      event_category: "worship" | "meeting" | "activity"
+      event_status: "scheduled" | "cancelled"
+      event_type: "religious" | "administrative"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -303,6 +538,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "pastor", "secretary", "treasurer", "coordinator"],
+      event_category: ["worship", "meeting", "activity"],
+      event_status: ["scheduled", "cancelled"],
+      event_type: ["religious", "administrative"],
     },
   },
 } as const
