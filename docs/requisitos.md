@@ -78,7 +78,7 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [x] Editar y eliminar publicaciones.
 - [x] Indicar fecha de publicación.
 - [x] Mostrar los próximos eventos y avisos importantes.
-(Migración `20261101000900_rf07_announcements.sql` creada, aún sin aplicar con `npm run db:push` ni verificada contra Supabase real; el tesorero no tiene acceso, según la matriz. Los próximos eventos solo se muestran a admin, pastor y secretario; el coordinador los verá cuando existan sus políticas.)
+(Verificado contra Supabase real con los repositorios reales (38 comprobaciones, 2026-11-02): admin, pastor y secretario crean, editan, leen y eliminan; el coordinador lee pero no crea, edita ni elimina; el tesorero no lee ni escribe (RLS filtra, 0 filas); título o cuerpo vacíos o demasiado largos se rechazan en la API (zod) y en la BD (CHECK). el tesorero no tiene acceso, según la matriz. Los próximos eventos solo se muestran a admin, pastor y secretario; el coordinador los verá cuando existan sus políticas.)
 
 ### RF-08. Panel principal (Dashboard)
 - [ ] Total de miembros activos.
