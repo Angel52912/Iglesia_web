@@ -71,7 +71,7 @@ Administrador, pastor, secretario, tesorero y coordinador.
 - [x] Generar resumen mensual.
 - [x] Restringir la información financiera a personal autorizado.
 - [x] Permitir registros anónimos sin asociarlos obligatoriamente a una persona.
-  (API probada con repositorios simulados: roles 401/403, validaciones, total en centavos y resumen por mes. Pastor solo recibe el resumen agregado (`donation_summary`). Pendiente: aplicar la migración `20261101000800_rf06_donations.sql` con `npm run db:push` y verificar RLS contra Supabase real. El tesorero no lee `members`: elige donante con `donation_donors()`, que solo expone id y nombre a admin y tesorero.)
+  (API probada con repositorios simulados: roles 401/403, validaciones, total en centavos y resumen por mes. Pastor solo recibe el resumen agregado por método (`donation_summary`, `concept` NULL). Verificado contra Supabase real con los repositorios reales (42 comprobaciones, 2026-11-02): CRUD de admin y tesorero, donación anónima, montos 0 y negativos rechazados por la BD, pastor sin filas y con resumen sin `concept`, secretario y coordinador sin acceso a tabla, resumen ni `donation_donors`. El tesorero no lee `members`: elige donante con `donation_donors()`, que solo expone id y nombre a admin y tesorero.)
 
 ### RF-07. Comunicados y anuncios
 - [ ] Publicar anuncios para los miembros.
