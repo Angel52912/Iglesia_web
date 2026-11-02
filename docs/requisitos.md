@@ -74,10 +74,11 @@ Administrador, pastor, secretario, tesorero y coordinador.
   (API probada con repositorios simulados: roles 401/403, validaciones, total en centavos y resumen por mes. Pastor solo recibe el resumen agregado por método (`donation_summary`, `concept` NULL). Verificado contra Supabase real con los repositorios reales (42 comprobaciones, 2026-11-02): CRUD de admin y tesorero, donación anónima, montos 0 y negativos rechazados por la BD, pastor sin filas y con resumen sin `concept`, secretario y coordinador sin acceso a tabla, resumen ni `donation_donors`. El tesorero no lee `members`: elige donante con `donation_donors()`, que solo expone id y nombre a admin y tesorero.)
 
 ### RF-07. Comunicados y anuncios
-- [ ] Publicar anuncios para los miembros.
-- [ ] Editar y eliminar publicaciones.
-- [ ] Indicar fecha de publicación.
-- [ ] Mostrar los próximos eventos y avisos importantes.
+- [x] Publicar anuncios para los miembros.
+- [x] Editar y eliminar publicaciones.
+- [x] Indicar fecha de publicación.
+- [x] Mostrar los próximos eventos y avisos importantes.
+(Migración `20261101000900_rf07_announcements.sql` creada, aún sin aplicar con `npm run db:push` ni verificada contra Supabase real; el tesorero no tiene acceso, según la matriz. Los próximos eventos solo se muestran a admin, pastor y secretario; el coordinador los verá cuando existan sus políticas.)
 
 ### RF-08. Panel principal (Dashboard)
 - [ ] Total de miembros activos.

@@ -12,6 +12,14 @@ import type {
   AttendanceSummary,
   HistoryFilters,
 } from '../src/modules/attendance/attendance.types.js';
+import { AnnouncementsService } from '../src/modules/announcements/announcements.service.js';
+import type {
+  Announcement,
+  AnnouncementFilters,
+  AnnouncementsRepository,
+  CreateAnnouncementInput,
+  UpdateAnnouncementInput,
+} from '../src/modules/announcements/announcements.types.js';
 import { DonationsService } from '../src/modules/donations/donations.service.js';
 import type {
   CreateDonationInput,
@@ -90,6 +98,7 @@ export interface Store {
   // eventId -> (memberId -> presente)
   attendance: Map<string, Map<string, boolean>>;
   donations: Map<string, Donation>;
+  announcements: Map<string, Announcement>;
   profiles: Map<string, UserProfile>;
   blocked: Set<string>;
   authRoles: Map<string, AppRole>;
@@ -130,6 +139,7 @@ export function createStore(): Store {
     events: new Map(),
     attendance: new Map(),
     donations: new Map(),
+    announcements: new Map(),
     profiles,
     blocked: new Set(),
     authRoles: new Map(),
@@ -576,6 +586,48 @@ export class FakeDonationsRepository implements DonationsRepository {
   }
 }
 
+export class FakeAnnouncementsRepository implements AnnouncementsRepository {
+  constructor(private readonly store: Store) {}
+
+  list(filters: AnnouncementFilters): Promise<Announcement[]> {
+    const found = [...this.store.announcements.values()].filter(
+      (a) => filters.important === undefined || a.important === filters.important,
+    );
+    return Promise.resolve(found.sort((a, b) => b.publishedOn.localeCompare(a.publishedOn)));
+  }
+
+  create(input: CreateAnnouncementInput): Promise<Announcement> {
+    const announcement: Announcement = {
+      id: randomUUID(),
+      title: input.title,
+      body: input.body,
+      important: input.important,
+      // Como la BD: sin fecha se publica hoy.
+      publishedOn: input.publishedOn ?? '2026-11-02',
+    };
+    this.store.announcements.set(announcement.id, announcement);
+    return Promise.resolve(announcement);
+  }
+
+  update(id: string, patch: UpdateAnnouncementInput): Promise<Announcement | null> {
+    const current = this.store.announcements.get(id);
+    if (!current) return Promise.resolve(null);
+    const updated: Announcement = {
+      ...current,
+      title: patch.title ?? current.title,
+      body: patch.body ?? current.body,
+      important: patch.important ?? current.important,
+      publishedOn: patch.publishedOn ?? current.publishedOn,
+    };
+    this.store.announcements.set(id, updated);
+    return Promise.resolve(updated);
+  }
+
+  remove(id: string): Promise<boolean> {
+    return Promise.resolve(this.store.announcements.delete(id));
+  }
+}
+
 export class FakeAuthAdmin implements AuthAdminPort {
   constructor(private readonly store: Store) {}
 
@@ -703,6 +755,7 @@ export function buildTestApp(): TestContext {
         new DonationsService(
           new FakeDonationsRepository(store, token.replace('token-', '') as AppRole),
         ),
+      announcementsFor: () => new AnnouncementsService(new FakeAnnouncementsRepository(store)),
       settingsFor: () => new SettingsService(new FakeSettingsRepository(store)),
     },
   );

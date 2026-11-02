@@ -183,6 +183,10 @@ select:disabled {
   object-fit: contain;
 }
 
+.card--important {
+  border-color: var(--danger);
+}
+
 .card--inactive {
   opacity: 0.65;
 }
