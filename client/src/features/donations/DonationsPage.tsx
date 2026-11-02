@@ -216,7 +216,7 @@ export function DonationsPage(): React.JSX.Element {
             {summary.donations === 1 ? 'aportación' : 'aportaciones'})
           </p>
           <GroupList title="Por método" groups={summary.byMethod} />
-          <GroupList title="Por concepto" groups={summary.byConcept} />
+          {canManage && summary.byConcept && <GroupList title="Por concepto" groups={summary.byConcept} />}
         </section>
       )}
 

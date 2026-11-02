@@ -105,6 +105,7 @@ describe('permisos de /api/donations', () => {
       'to',
       'total',
     ]);
-    expect(JSON.stringify(response.body)).not.toContain('Ana Pérez');
+    expect(JSON.stringify(response.body)).not.toMatch(/Ana Pérez|Diezmo/);
+    expect((response.body as { summary: { byConcept: unknown } }).summary.byConcept).toBeNull();
   });
 });

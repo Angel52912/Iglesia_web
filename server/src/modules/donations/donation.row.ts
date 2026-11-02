@@ -16,7 +16,7 @@ export const donorRowSchema = z.object({ id: z.uuid(), full_name: z.string() });
 
 export const summaryRowSchema = z.object({
   method: z.enum(DONATION_METHODS),
-  concept: z.string(),
+  concept: z.string().nullable(),
   total: z.coerce.number(),
   donations: z.coerce.number(),
 });

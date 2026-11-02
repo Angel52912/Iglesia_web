@@ -83,10 +83,18 @@ describe('DonationsPage', () => {
     });
   });
 
+  it('el tesorero ve el resumen por concepto', async () => {
+    renderAs('treasurer');
+    expect(await screen.findByText('Por concepto')).toBeTruthy();
+  });
+
   it('el pastor solo ve el resumen: no consulta filas ni donantes y no hay formulario', async () => {
+    vi.mocked(api.getDonationSummary).mockResolvedValue({ ...summary, byConcept: null });
     renderAs('pastor');
 
     expect(await screen.findByText('Resumen del mes')).toBeTruthy();
+    expect(screen.getByText('Por método')).toBeTruthy();
+    expect(screen.queryByText('Por concepto')).toBeNull();
     expect(api.listDonations).not.toHaveBeenCalled();
     expect(api.listDonors).not.toHaveBeenCalled();
     expect(screen.queryByRole('button', { name: 'Registrar aportación' })).toBeNull();

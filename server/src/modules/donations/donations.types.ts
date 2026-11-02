@@ -41,9 +41,10 @@ export interface UpdateDonationInput {
 }
 
 // Fila agregada que devuelve donation_summary (sin donantes).
+// concept es null para el pastor: la BD no le entrega el texto libre.
 export interface SummaryRow {
   method: DonationMethod;
-  concept: string;
+  concept: string | null;
   total: number;
   donations: number;
 }
@@ -61,7 +62,8 @@ export interface DonationSummary {
   total: number;
   donations: number;
   byMethod: SummaryGroup[];
-  byConcept: SummaryGroup[];
+  // null cuando el rol no puede ver conceptos (pastor).
+  byConcept: SummaryGroup[] | null;
 }
 
 export interface DonationList {

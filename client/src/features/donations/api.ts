@@ -46,7 +46,8 @@ export interface DonationSummary {
   total: number;
   donations: number;
   byMethod: SummaryGroup[];
-  byConcept: SummaryGroup[];
+  // null para el pastor: no ve conceptos.
+  byConcept: SummaryGroup[] | null;
 }
 
 export interface DonationPayload {

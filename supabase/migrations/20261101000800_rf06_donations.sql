@@ -48,6 +48,8 @@ create policy donations_delete on public.donations
 
 -- Resumen agregado (sin donantes ni filas individuales) para admin, pastor y tesorero.
 -- security definer porque el pastor no puede leer la tabla; el rol se valida dentro.
+-- concept es texto libre y podría contener datos de una persona: solo admin y tesorero lo
+-- reciben. Para el pastor concept es NULL y se agrupa únicamente por método.
 create function public.donation_summary(p_from date, p_to date)
 returns table (method text, concept text, total numeric, donations bigint)
 language plpgsql
@@ -60,11 +62,19 @@ begin
     raise exception 'No tienes permiso para ver el resumen de donaciones'
       using errcode = '42501';
   end if;
-  return query
-    select d.method, d.concept, sum(d.amount), count(*)
-    from public.donations d
-    where d.donated_on between p_from and p_to
-    group by d.method, d.concept;
+  if public.has_role('admin', 'treasurer') then
+    return query
+      select d.method, d.concept, sum(d.amount), count(*)
+      from public.donations d
+      where d.donated_on between p_from and p_to
+      group by d.method, d.concept;
+  else
+    return query
+      select d.method, null::text, sum(d.amount), count(*)
+      from public.donations d
+      where d.donated_on between p_from and p_to
+      group by d.method;
+  end if;
 end
 $$;
 

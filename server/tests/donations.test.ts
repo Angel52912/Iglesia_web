@@ -156,7 +156,7 @@ describe('/api/donations', () => {
       }
       const response = await request(app)
         .get('/api/donations/summary?month=2026-11')
-        .set(authHeader('pastor'));
+        .set(authHeader('admin'));
       expect(response.status).toBe(200);
       expect((response.body as { summary: unknown }).summary).toEqual({
         month: '2026-11',
@@ -173,6 +173,31 @@ describe('/api/donations', () => {
           { key: 'Ofrenda', total: 20, donations: 1 },
         ],
       });
+    });
+
+    it('el pastor recibe el resumen solo por método y sin conceptos', async () => {
+      const { app } = buildTestApp();
+      const entries = [
+        { donatedOn: '2026-11-01', amount: 100, concept: 'Diezmo de Ana Pérez', method: 'cash' },
+        { donatedOn: '2026-11-02', amount: 20, concept: 'Ofrenda', method: 'cash' },
+        { donatedOn: '2026-11-03', amount: 50.25, concept: 'Diezmo', method: 'transfer' },
+      ];
+      for (const entry of entries) {
+        await request(app).post('/api/donations').set(treasurer).send(entry);
+      }
+      const response = await request(app)
+        .get('/api/donations/summary?month=2026-11')
+        .set(authHeader('pastor'));
+      expect(response.status).toBe(200);
+      const { summary } = response.body as { summary: Record<string, unknown> };
+      expect(summary.byConcept).toBeNull();
+      expect(summary.total).toBe(170.25);
+      expect(summary.donations).toBe(3);
+      expect(summary.byMethod).toEqual([
+        { key: 'cash', total: 120, donations: 2 },
+        { key: 'transfer', total: 50.25, donations: 1 },
+      ]);
+      expect(JSON.stringify(response.body)).not.toMatch(/Diezmo|Ofrenda|Ana/);
     });
 
     it('un mes sin donaciones devuelve ceros', async () => {

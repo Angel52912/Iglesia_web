@@ -27,10 +27,11 @@ export function monthRange(month: string): { from: string; to: string } {
   return { from: `${month}-01`, to: `${month}-${String(lastDay).padStart(2, '0')}` };
 }
 
-function groupBy(rows: SummaryRow[], keyOf: (row: SummaryRow) => string): SummaryGroup[] {
+function groupBy(rows: SummaryRow[], keyOf: (row: SummaryRow) => string | null): SummaryGroup[] {
   const groups = new Map<string, { cents: number; donations: number }>();
   for (const row of rows) {
     const key = keyOf(row);
+    if (key === null) continue;
     const current = groups.get(key) ?? { cents: 0, donations: 0 };
     groups.set(key, {
       cents: current.cents + toCents(row.total),
@@ -80,7 +81,10 @@ export class DonationsService {
       total: fromCents(cents),
       donations: rows.reduce((sum, row) => sum + row.donations, 0),
       byMethod: groupBy(rows, (row) => row.method),
-      byConcept: groupBy(rows, (row) => row.concept),
+      // Si algún grupo llega sin concepto, el rol no puede verlos: no se inventa un desglose.
+      byConcept: rows.some((row) => row.concept === null)
+        ? null
+        : groupBy(rows, (row) => row.concept),
     };
   }
 }

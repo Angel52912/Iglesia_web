@@ -489,7 +489,10 @@ export class FakeAttendanceRepository implements AttendanceRepository {
 }
 
 export class FakeDonationsRepository implements DonationsRepository {
-  constructor(private readonly store: Store) {}
+  constructor(
+    private readonly store: Store,
+    private readonly role: AppRole,
+  ) {}
 
   private donorNameFor(memberId: string | null): string | null {
     if (memberId === null) return null;
@@ -515,13 +518,16 @@ export class FakeDonationsRepository implements DonationsRepository {
   }
 
   summaryRows(from: string, to: string): Promise<SummaryRow[]> {
+    // Como donation_summary: solo admin y tesorero reciben el concepto.
+    const withConcept = this.role === 'admin' || this.role === 'treasurer';
     const groups = new Map<string, SummaryRow>();
     for (const d of this.store.donations.values()) {
       if (d.donatedOn < from || d.donatedOn > to) continue;
-      const key = `${d.method}|${d.concept}`;
+      const concept = withConcept ? d.concept : null;
+      const key = `${d.method}|${concept ?? ''}`;
       const current = groups.get(key) ?? {
         method: d.method,
-        concept: d.concept,
+        concept,
         total: 0,
         donations: 0,
       };
@@ -693,7 +699,10 @@ export function buildTestApp(): TestContext {
       ministriesFor: () => new MinistriesService(new FakeMinistriesRepository(store)),
       eventsFor: () => new EventsService(new FakeEventsRepository(store)),
       attendanceFor: () => new AttendanceService(new FakeAttendanceRepository(store)),
-      donationsFor: () => new DonationsService(new FakeDonationsRepository(store)),
+      donationsFor: (token) =>
+        new DonationsService(
+          new FakeDonationsRepository(store, token.replace('token-', '') as AppRole),
+        ),
       settingsFor: () => new SettingsService(new FakeSettingsRepository(store)),
     },
   );
