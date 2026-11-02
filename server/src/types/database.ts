@@ -118,6 +118,57 @@ export type Database = {
         }
         Relationships: []
       }
+      donations: {
+        Row: {
+          amount: number
+          concept: string
+          created_at: string
+          donated_on: string
+          id: string
+          member_id: string | null
+          method: string
+          recorded_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          concept: string
+          created_at?: string
+          donated_on: string
+          id?: string
+          member_id?: string | null
+          method: string
+          recorded_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          concept?: string
+          created_at?: string
+          donated_on?: string
+          id?: string
+          member_id?: string | null
+          method?: string
+          recorded_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donations_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donations_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_responsibles: {
         Row: {
           event_id: string
@@ -396,6 +447,22 @@ export type Database = {
       current_app_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      donation_donors: {
+        Args: never
+        Returns: {
+          full_name: string
+          id: string
+        }[]
+      }
+      donation_summary: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          concept: string
+          donations: number
+          method: string
+          total: number
+        }[]
       }
       has_role: {
         Args: { roles: Database["public"]["Enums"]["app_role"][] }
