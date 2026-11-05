@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { todayIso } from '../shared/today.js';
 import { EVENT_CATEGORIES, EVENT_STATUSES, EVENT_TYPES } from './events.types.js';
 
 const titleSchema = z
@@ -40,17 +41,23 @@ const responsibleIdsSchema = z
   // Un responsable repetido no debe romper la llave primaria.
   .transform((ids) => [...new Set(ids)]);
 
-export const createEventSchema = z.object({
-  title: titleSchema,
-  description: descriptionSchema.default(null),
-  eventDate: dateSchema,
-  startTime: timeSchema,
-  location: locationSchema.default(null),
-  type: typeSchema,
-  category: categorySchema,
-  ministryId: ministryIdSchema.default(null),
-  responsibleIds: responsibleIdsSchema.default([]),
-});
+// Solo al crear: hoy o futuro. Editar un evento pasado (p. ej. corregir un dato) sigue permitido.
+export const createEventSchema = z
+  .object({
+    title: titleSchema,
+    description: descriptionSchema.default(null),
+    eventDate: dateSchema,
+    startTime: timeSchema,
+    location: locationSchema.default(null),
+    type: typeSchema,
+    category: categorySchema,
+    ministryId: ministryIdSchema.default(null),
+    responsibleIds: responsibleIdsSchema.default([]),
+  })
+  .refine((value) => value.eventDate >= todayIso(), {
+    path: ['eventDate'],
+    error: 'No se pueden crear eventos en fechas anteriores a hoy',
+  });
 
 export const updateEventSchema = z
   .object({

@@ -183,3 +183,17 @@ Asigna un responsable a cada fila.
 | 10 | **Publicar la app** | Hosting con HTTPS (la PWA lo exige), variables de producción y `CLIENT_ORIGIN` correcto | | [ ] |
 | 11 | **Fusionar la rama** | Revisar `feat/rf-12-correos` (commit `0a059e9`) y pasarla a `main` | | [ ] |
 | 12 | Opcional | Sincronizar eventos con Google Calendar | | [ ] |
+
+## 6. QA de las validaciones y datos de la iglesia (nuevo)
+
+| ☐ | Prueba | Debe pasar |
+|---|---|---|
+| [ ] | En Miembros y Configuración, escribir letras o símbolos en Teléfono | No se escriben; solo números, máximo 10 |
+| [ ] | Guardar un teléfono con menos de 10 números | Lo rechaza ("exactamente 10 números") |
+| [ ] | En Miembros y Usuarios, escribir números o símbolos en Nombre completo | No se escriben; solo letras (con acentos) y espacios |
+| [ ] | Crear un evento con fecha de ayer (también por API) | Lo rechaza; el campo de fecha no deja elegir días pasados |
+| [ ] | Crear un evento hoy y uno futuro | Se crean |
+| [ ] | Editar un evento viejo (cambiar título) | Se puede guardar |
+| [ ] | Cualquier rol: encabezado e inicio | Muestran logotipo y nombre de la iglesia; en el inicio, dirección y correo de contacto |
+| [ ] | Admin cambia nombre o logotipo en Configuración | El encabezado se actualiza sin recargar |
+| [ ] | Teléfono y horarios de la iglesia | Solo los ve el administrador, en Configuración |

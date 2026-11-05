@@ -17,6 +17,7 @@ import { EventsService } from './modules/events/events.service.js';
 import { SupabaseEventsRepository } from './modules/events/supabaseEvents.repository.js';
 import { MinistriesService } from './modules/ministries/ministries.service.js';
 import { SupabaseMinistriesRepository } from './modules/ministries/supabaseMinistries.repository.js';
+import { SupabaseChurchRepository } from './modules/church/supabaseChurch.repository.js';
 import { RemindersService } from './modules/reminders/reminders.service.js';
 import {
   ResendEmailSender,
@@ -71,6 +72,7 @@ const app = createApp(env, {
       new DonationsService(new SupabaseDonationsRepository(db)),
     );
   },
+  churchFor: (accessToken) => new SupabaseChurchRepository(createUserClient(env, accessToken)),
   remindersFor: (accessToken) =>
     new RemindersService(
       new SupabaseRemindersRepository(createUserClient(env, accessToken)),

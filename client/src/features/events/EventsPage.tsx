@@ -172,6 +172,11 @@ export function EventsPage(): React.JSX.Element {
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>): void {
     event.preventDefault();
+    if (!editingId && form.eventDate < todayIso()) {
+      setMessage(null);
+      setActionError('No se pueden crear eventos en fechas anteriores a hoy');
+      return;
+    }
     void run(
       async () => {
         if (editingId) {
@@ -378,6 +383,8 @@ export function EventsPage(): React.JSX.Element {
               <input
                 required
                 type="date"
+                // Al crear no se aceptan fechas pasadas; al editar un evento ya existente sí.
+                min={editingId ? undefined : todayIso()}
                 value={form.eventDate}
                 onChange={(event) => {
                   setField('eventDate', event.target.value);

@@ -27,7 +27,7 @@ async function seedMembers(app: TestContext['app']): Promise<void> {
   await request(app)
     .post('/api/members')
     .set(asSecretary)
-    .send({ fullName: 'Ana Pérez', phone: '555-1234', email: 'ana@iglesia.test' });
+    .send({ fullName: 'Ana Pérez', phone: '5551234567', email: 'ana@iglesia.test' });
   const luis = await request(app).post('/api/members').set(asSecretary).send({ fullName: 'Luis' });
   const id = (luis.body as { member: { id: string } }).member.id;
   await request(app).patch(`/api/members/${id}`).set(asSecretary).send({ active: false });

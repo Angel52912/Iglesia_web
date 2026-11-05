@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState, type ChangeEvent, type SyntheticEvent } from 'react';
+import { useChurch } from '../church/useChurch';
+import { PHONE_LENGTH, toPhoneDigits } from '../../lib/inputFilters';
 import {
   createSchedule,
   deleteSchedule,
@@ -32,6 +34,7 @@ function toForm(settings: ChurchSettings): SettingsPayload {
 
 // Solo el administrador entra (ProtectedRoute); el servidor también lo exige (403).
 export function SettingsPage(): React.JSX.Element {
+  const { refreshChurch } = useChurch();
   const [settings, setSettings] = useState<ChurchSettings | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [message, setMessage] = useState<string | null>(null);
@@ -77,6 +80,8 @@ export function SettingsPage(): React.JSX.Element {
     try {
       await action();
       setMessage(success);
+      // El encabezado y el inicio muestran nombre, logotipo, dirección y correo.
+      refreshChurch();
     } catch (error) {
       setActionError(errorText(error));
     } finally {
@@ -167,12 +172,17 @@ export function SettingsPage(): React.JSX.Element {
               />
             </label>
             <label>
-              Teléfono
+              Teléfono (10 números)
               <input
                 type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                maxLength={PHONE_LENGTH}
+                pattern={`\\d{${String(PHONE_LENGTH)}}`}
+                title="Debe tener exactamente 10 números"
                 value={form.phone}
                 onChange={(event) => {
-                  setField('phone', event.target.value);
+                  setField('phone', toPhoneDigits(event.target.value));
                 }}
               />
             </label>

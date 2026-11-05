@@ -18,7 +18,7 @@ describe('POST /api/members', () => {
     const { app } = buildTestApp();
     const response = await request(app).post('/api/members').set(asSecretary).send({
       fullName: '  Ana Pérez ',
-      phone: '555 123 4567',
+      phone: '5551234567',
       email: 'Ana@Correo.com',
       joinedOn: '2026-05-10',
     });
@@ -26,7 +26,7 @@ describe('POST /api/members', () => {
     expect(response.body).toMatchObject({
       member: {
         fullName: 'Ana Pérez',
-        phone: '555 123 4567',
+        phone: '5551234567',
         email: 'ana@correo.com',
         joinedOn: '2026-05-10',
         active: true,
@@ -49,6 +49,11 @@ describe('POST /api/members', () => {
     ['nombre vacío', { fullName: '   ' }],
     ['correo inválido', { fullName: 'Ana', email: 'no-es-correo' }],
     ['teléfono con letras', { fullName: 'Ana', phone: 'abc' }],
+    ['teléfono con menos de 10 números', { fullName: 'Ana', phone: '555123456' }],
+    ['teléfono con más de 10 números', { fullName: 'Ana', phone: '55512345678' }],
+    ['teléfono con espacios o guiones', { fullName: 'Ana', phone: '555-123-4567' }],
+    ['nombre con números', { fullName: 'Ana 2' }],
+    ['nombre con símbolos', { fullName: 'Ana_Pérez!' }],
     ['fecha inválida', { fullName: 'Ana', joinedOn: '31/12/2026' }],
   ])('responde 400 %s', async (_name, body) => {
     const { app, store } = buildTestApp();
@@ -88,7 +93,7 @@ describe('GET /api/members', () => {
 describe('PATCH /api/members/:id', () => {
   it('edita datos personales', async () => {
     const { app } = buildTestApp();
-    const { id } = await createMember(app, { fullName: 'Ana', phone: '555' });
+    const { id } = await createMember(app, { fullName: 'Ana', phone: '5550001111' });
     const response = await request(app)
       .patch(`/api/members/${id}`)
       .set(asSecretary)
@@ -165,7 +170,7 @@ describe('normalización de correo y campos vacíos', () => {
     const response = await request(app)
       .post('/api/members')
       .set(asSecretary)
-      .send({ fullName: 'Luis', phone: '555 000', email: 'luis@correo.com', [field]: '' });
+      .send({ fullName: 'Luis', phone: '5550001111', email: 'luis@correo.com', [field]: '' });
     expect(response.status).toBe(201);
     const { id } = (response.body as { member: { id: string } }).member;
     expect(store.members.get(id)?.[field]).toBeNull();
@@ -189,7 +194,7 @@ describe('normalización de correo y campos vacíos', () => {
     const { app, store } = buildTestApp();
     const { id } = await createMember(app, {
       fullName: 'Ana',
-      phone: '555 123',
+      phone: '5551230000',
       email: 'ana@correo.com',
     });
     const response = await request(app)

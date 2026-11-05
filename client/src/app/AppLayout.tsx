@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ROLE_LABELS } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
 import { Icon } from '../components/Icon';
+import { getChurchInfo, type ChurchInfo } from '../features/church/api';
+import type { ChurchContext } from '../features/church/useChurch';
 import { navItemsFor } from './navigation';
 import { useTheme } from './theme';
 
@@ -28,6 +30,29 @@ export function AppLayout(): React.JSX.Element {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
 
+  const [church, setChurch] = useState<ChurchInfo | null>(null);
+  const [churchKey, setChurchKey] = useState(0);
+  const refreshChurch = useCallback((): void => {
+    setChurchKey((key) => key + 1);
+  }, []);
+  const userId = user?.id;
+
+  // Nombre, logotipo, dirección y correo de la iglesia; si falla, el encabezado usa el título genérico.
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    getChurchInfo()
+      .then((info) => {
+        if (!cancelled) setChurch(info);
+      })
+      .catch(() => {
+        if (!cancelled) setChurch(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, churchKey]);
+
   useEffect(() => {
     if (!moreOpen) return;
     function onKey(event: KeyboardEvent): void {
@@ -47,6 +72,8 @@ export function AppLayout(): React.JSX.Element {
   const moreItems = hasMore ? items.slice(BOTTOM_SLOTS) : [];
   const moreActive = moreItems.some((item) => item.to === location.pathname);
 
+  const outletContext: ChurchContext = { church, refreshChurch };
+
   const handleSignOut = (): void => {
     void signOut();
   };
@@ -56,9 +83,13 @@ export function AppLayout(): React.JSX.Element {
       <header className="topbar">
         <NavLink to="/" className="brand" aria-label="Ir al inicio">
           <span className="brand__mark">
-            <Icon name="church" size={22} />
+            {church?.logoUrl ? (
+              <img src={church.logoUrl} alt="" className="brand__logo" />
+            ) : (
+              <Icon name="church" size={22} />
+            )}
           </span>
-          <span className="brand__name">Gestión de Iglesia</span>
+          <span className="brand__name">{church?.name ?? 'Gestión de Iglesia'}</span>
         </NavLink>
         <div className="topbar__user">
           <button
@@ -105,7 +136,7 @@ export function AppLayout(): React.JSX.Element {
       <div className="shell__content">
         {/* La key reinicia la animación de entrada (fade + slide up) en cada sección. */}
         <div key={location.pathname} className="route-enter">
-          <Outlet />
+          <Outlet context={outletContext} />
         </div>
       </div>
 

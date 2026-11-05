@@ -92,6 +92,7 @@ describe('POST /api/events', () => {
   it.each([
     ['sin título', { title: ' ' }],
     ['fecha inválida', { eventDate: '2026-13-40' }],
+    ['fecha anterior a hoy', { eventDate: '2026-10-31' }],
     ['hora inválida', { startTime: '25:61' }],
     ['tipo inválido', { type: 'otro' }],
     ['categoría inválida', { category: 'fiesta' }],
@@ -210,5 +211,40 @@ describe('PATCH /api/events/:id', () => {
     expect((await request(app).patch('/api/events/abc').set(asSecretary).send({})).status).toBe(
       400,
     );
+  });
+});
+
+describe('fecha de los eventos (hoy = 2026-11-01 en las pruebas)', () => {
+  it('permite crear un evento hoy y uno futuro', async () => {
+    const { app } = buildTestApp();
+    for (const eventDate of ['2026-11-01', '2026-11-02']) {
+      const response = await request(app)
+        .post('/api/events')
+        .set(asSecretary)
+        .send({ ...baseEvent, eventDate });
+      expect(response.status).toBe(201);
+    }
+  });
+
+  it('rechaza ayer con un mensaje claro y no guarda nada', async () => {
+    const { app, store } = buildTestApp();
+    const response = await request(app)
+      .post('/api/events')
+      .set(asSecretary)
+      .send({ ...baseEvent, eventDate: '2026-10-31' });
+    expect(response.status).toBe(400);
+    expect(JSON.stringify(response.body)).toContain('anteriores a hoy');
+    expect(store.events.size).toBe(0);
+  });
+
+  it('al editar sí acepta una fecha pasada (corregir un evento viejo)', async () => {
+    const { app } = buildTestApp();
+    const created = await request(app).post('/api/events').set(asSecretary).send(baseEvent);
+    const { id } = (created.body as { event: { id: string } }).event;
+    const response = await request(app)
+      .patch(`/api/events/${id}`)
+      .set(asSecretary)
+      .send({ eventDate: '2026-10-01' });
+    expect(response.status).toBe(200);
   });
 });

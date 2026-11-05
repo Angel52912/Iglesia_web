@@ -72,6 +72,7 @@ describe('POST /api/users', () => {
     ['correo inválido', { email: 'no-es-correo' }],
     ['rol inexistente', { role: 'superusuario' }],
     ['nombre vacío', { fullName: '   ' }],
+    ['nombre con números', { fullName: 'Admin 2' }],
     ['contraseña ausente', { password: undefined }],
   ])('rechaza con 400: %s', async (_caso, override) => {
     const { app, store } = buildTestApp();

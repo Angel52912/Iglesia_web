@@ -19,6 +19,10 @@ import {
 } from './modules/dashboard/dashboard.routes.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
 import {
+  createChurchRouter,
+  type ChurchRepositoryFactory,
+} from './modules/church/church.routes.js';
+import {
   createDonationsRouter,
   type DonationsServiceFactory,
 } from './modules/donations/donations.routes.js';
@@ -59,6 +63,7 @@ export interface AppDeps {
   dashboardFor: DashboardServiceFactory;
   reportsFor: ReportsServiceFactory;
   remindersFor: RemindersServiceFactory;
+  churchFor: ChurchRepositoryFactory;
 }
 
 export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Express {
@@ -84,6 +89,7 @@ export function createApp(env: Pick<Env, 'CLIENT_ORIGIN'>, deps: AppDeps): Expre
   app.use('/api/announcements', authenticate, createAnnouncementsRouter(deps.announcementsFor));
   app.use('/api/dashboard', authenticate, createDashboardRouter(deps.dashboardFor));
   app.use('/api/reports', authenticate, createReportsRouter(deps.reportsFor));
+  app.use('/api/church', authenticate, createChurchRouter(deps.churchFor));
   app.use('/api/reminders', authenticate, createRemindersRouter(deps.remindersFor));
   app.use(
     '/api/settings',

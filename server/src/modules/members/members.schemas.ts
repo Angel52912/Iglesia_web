@@ -1,17 +1,18 @@
 import { z } from 'zod';
 
-const fullNameSchema = z
+// Nombre de persona: solo letras (con acentos) separadas por espacios.
+export const fullNameSchema = z
   .string({ error: 'El nombre es obligatorio' })
   .trim()
   .min(1, 'El nombre es obligatorio')
-  .max(120, 'El nombre es demasiado largo');
+  .max(120, 'El nombre es demasiado largo')
+  .regex(/^[\p{L}\p{M}]+(?:\s+[\p{L}\p{M}]+)*$/u, 'El nombre solo puede tener letras y espacios');
 
 // Cadena vacía = sin dato: los campos opcionales se guardan como null.
 export const phoneSchema = z
   .string()
   .trim()
-  .max(30, 'El teléfono es demasiado largo')
-  .regex(/^[0-9+()\-\s]*$/, 'El teléfono solo puede tener números, espacios, + ( ) y -')
+  .regex(/^(?:\d{10})?$/, 'El teléfono debe tener exactamente 10 números')
   .nullable()
   .transform((value) => (value === null || value === '' ? null : value));
 

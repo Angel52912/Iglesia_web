@@ -874,6 +874,12 @@ export function buildTestApp(): TestContext {
             new FakeDonationsRepository(store, token.replace('token-', '') as AppRole),
           ),
         ),
+      churchFor: () => ({
+        getPublicInfo: () => {
+          const { name, address, email, logoUrl } = store.settings;
+          return Promise.resolve({ name, address, email, logoUrl });
+        },
+      }),
       remindersFor: () =>
         new RemindersService(new FakeRemindersRepository(store), new FakeEmailSender(store)),
       settingsFor: () => new SettingsService(new FakeSettingsRepository(store)),

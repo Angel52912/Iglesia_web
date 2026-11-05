@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
 import { ROLES, ROLE_LABELS, type Role } from '../../auth/roles';
 import { useAuth } from '../../auth/useAuth';
 import { FormPanel } from '../../components/FormPanel';
+import { toLettersOnly } from '../../lib/inputFilters';
 import { createUser, listUsers, updateUser, type UserProfile } from './api';
 
 type LoadState = 'loading' | 'ready' | 'error';
@@ -97,9 +98,11 @@ export function UsersPage(): React.JSX.Element {
             Nombre completo
             <input
               required
+              pattern="[\p{L}\p{M}]+(\s+[\p{L}\p{M}]+)*"
+              title="Solo letras y espacios"
               value={fullName}
               onChange={(event) => {
-                setFullName(event.target.value);
+                setFullName(toLettersOnly(event.target.value));
               }}
             />
           </label>

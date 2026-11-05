@@ -1,12 +1,8 @@
 import { z } from 'zod';
 import { ROLES } from '../../types/auth.js';
+import { fullNameSchema } from '../members/members.schemas.js';
 
 const roleSchema = z.enum(ROLES, { error: 'Rol no válido' });
-const fullNameSchema = z
-  .string({ error: 'El nombre es obligatorio' })
-  .trim()
-  .min(1, 'El nombre es obligatorio')
-  .max(120, 'El nombre es demasiado largo');
 
 export const PASSWORD_MIN_LENGTH = 8;
 

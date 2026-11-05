@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
 import { useAuth } from '../../auth/useAuth';
 import { FormPanel } from '../../components/FormPanel';
+import { PHONE_LENGTH, toLettersOnly, toPhoneDigits } from '../../lib/inputFilters';
 import {
   createMember,
   listMembers,
@@ -138,19 +139,26 @@ export function MembersPage(): React.JSX.Element {
               Nombre completo
               <input
                 required
+                pattern="[\p{L}\p{M}]+(\s+[\p{L}\p{M}]+)*"
+                title="Solo letras y espacios"
                 value={form.fullName}
                 onChange={(event) => {
-                  setField('fullName', event.target.value);
+                  setField('fullName', toLettersOnly(event.target.value));
                 }}
               />
             </label>
             <label>
-              Teléfono
+              Teléfono (10 números)
               <input
                 type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                maxLength={PHONE_LENGTH}
+                pattern={`\\d{${String(PHONE_LENGTH)}}`}
+                title="Debe tener exactamente 10 números"
                 value={form.phone}
                 onChange={(event) => {
-                  setField('phone', event.target.value);
+                  setField('phone', toPhoneDigits(event.target.value));
                 }}
               />
             </label>

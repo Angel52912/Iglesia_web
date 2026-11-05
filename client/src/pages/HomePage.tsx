@@ -1,4 +1,5 @@
 import { useAuth } from '../auth/useAuth';
+import { useChurch } from '../features/church/useChurch';
 import { DashboardPanel } from '../features/dashboard/DashboardPanel';
 
 const longDate = new Intl.DateTimeFormat('es-MX', {
@@ -15,6 +16,7 @@ function greeting(hour: number): string {
 
 export function HomePage(): React.JSX.Element {
   const { user } = useAuth();
+  const { church } = useChurch();
   if (!user) return <></>;
 
   const now = new Date();
@@ -32,6 +34,22 @@ export function HomePage(): React.JSX.Element {
           <cite>Colosenses 3:23</cite>
         </blockquote>
       </section>
+      {church && (
+        <section className="church-info" aria-label="Datos de la iglesia">
+          <div className="church-info__head">
+            {church.logoUrl && (
+              <img src={church.logoUrl} alt="Logotipo de la iglesia" className="church-info__logo" />
+            )}
+            <h2>{church.name}</h2>
+          </div>
+          {church.address && <p>Dirección: {church.address}</p>}
+          {church.email && (
+            <p>
+              Contacto: <a href={`mailto:${church.email}`}>{church.email}</a>
+            </p>
+          )}
+        </section>
+      )}
       <DashboardPanel />
     </main>
   );

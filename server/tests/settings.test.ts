@@ -20,7 +20,7 @@ describe('PATCH /api/settings', () => {
     const response = await request(app).patch('/api/settings').set(asAdmin).send({
       name: '  Iglesia Central ',
       address: 'Calle 1 #23',
-      phone: '555 123 4567',
+      phone: '5551234567',
       email: 'Contacto@Iglesia.com',
     });
     expect(response.status).toBe(200);
@@ -28,7 +28,7 @@ describe('PATCH /api/settings', () => {
       settings: {
         name: 'Iglesia Central',
         address: 'Calle 1 #23',
-        phone: '555 123 4567',
+        phone: '5551234567',
         email: 'contacto@iglesia.com',
       },
     });
@@ -39,7 +39,7 @@ describe('PATCH /api/settings', () => {
     await request(app)
       .patch('/api/settings')
       .set(asAdmin)
-      .send({ address: 'Calle 1', phone: '555 1', email: 'a@b.com' });
+      .send({ address: 'Calle 1', phone: '5551234567', email: 'a@b.com' });
     const response = await request(app)
       .patch('/api/settings')
       .set(asAdmin)
@@ -54,6 +54,7 @@ describe('PATCH /api/settings', () => {
     ['nombre vacío', { name: '   ' }],
     ['correo inválido', { email: 'no-es-correo' }],
     ['teléfono inválido', { phone: 'abc' }],
+    ['teléfono de 9 números', { phone: '555123456' }],
     ['sin cambios', {}],
   ])('rechaza con 400: %s', async (_caso, body) => {
     const { app } = buildTestApp();
