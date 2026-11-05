@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
+import { FormPanel } from '../../components/FormPanel';
 import {
   createMember,
   listMembers,
@@ -117,9 +117,6 @@ export function MembersPage(): React.JSX.Element {
 
   return (
     <main className="page">
-      <p>
-        <Link to="/">← Inicio</Link>
-      </p>
       <h1>Miembros</h1>
 
       {actionError && (
@@ -129,62 +126,64 @@ export function MembersPage(): React.JSX.Element {
       )}
 
       {canWrite && (
-        <form
-          className="form"
-          onSubmit={(event) => {
-            void handleSubmit(event);
-          }}
-        >
-          <h2>{editingId ? 'Editar miembro' : 'Nuevo miembro'}</h2>
-          <label>
-            Nombre completo
-            <input
-              required
-              value={form.fullName}
-              onChange={(event) => {
-                setField('fullName', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Teléfono
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={(event) => {
-                setField('phone', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Correo electrónico
-            <input
-              type="email"
-              value={form.email}
-              onChange={(event) => {
-                setField('email', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Fecha de ingreso
-            <input
-              type="date"
-              value={form.joinedOn}
-              onChange={(event) => {
-                setField('joinedOn', event.target.value);
-              }}
-            />
-          </label>
-          <button type="submit" disabled={saving}>
-            {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Registrar miembro'}
-          </button>
-          {editingId && (
-            <button type="button" className="button--secondary" onClick={cancelEdit}>
-              Cancelar
+        <FormPanel label="Nuevo miembro" forceOpen={editingId !== null}>
+          <form
+            className="form"
+            onSubmit={(event) => {
+              void handleSubmit(event);
+            }}
+          >
+            <h2>{editingId ? 'Editar miembro' : 'Nuevo miembro'}</h2>
+            <label>
+              Nombre completo
+              <input
+                required
+                value={form.fullName}
+                onChange={(event) => {
+                  setField('fullName', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Teléfono
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(event) => {
+                  setField('phone', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Correo electrónico
+              <input
+                type="email"
+                value={form.email}
+                onChange={(event) => {
+                  setField('email', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Fecha de ingreso
+              <input
+                type="date"
+                value={form.joinedOn}
+                onChange={(event) => {
+                  setField('joinedOn', event.target.value);
+                }}
+              />
+            </label>
+            <button type="submit" disabled={saving}>
+              {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Registrar miembro'}
             </button>
-          )}
-        </form>
+            {editingId && (
+              <button type="button" className="button--secondary" onClick={cancelEdit}>
+                Cancelar
+              </button>
+            )}
+          </form>
+        </FormPanel>
       )}
 
       <div className="form">

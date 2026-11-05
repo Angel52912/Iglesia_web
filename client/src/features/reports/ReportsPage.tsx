@@ -100,7 +100,6 @@ export function ReportsPage(): React.JSX.Element {
   return (
     <main className="page">
       <h1>Reportes</h1>
-      <Link to="/">Volver al panel</Link>
 
       <form className="form" onSubmit={generate}>
         <label>

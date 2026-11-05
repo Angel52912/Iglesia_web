@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type SyntheticEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
+import { FormPanel } from '../../components/FormPanel';
 import { MemberPicker } from '../../components/MemberPicker';
 import { listMembers, type Member } from '../members/api';
 import { listMinistries, type Ministry } from '../ministries/api';
@@ -232,9 +232,6 @@ export function EventsPage(): React.JSX.Element {
 
   return (
     <main className="page">
-      <p>
-        <Link to="/">← Inicio</Link>
-      </p>
       <h1>Eventos</h1>
 
       {actionError && (
@@ -363,122 +360,124 @@ export function EventsPage(): React.JSX.Element {
       </section>
 
       {canWrite && (
-        <form className="form" onSubmit={handleSubmit}>
-          <h2>{editingId ? 'Editar evento' : 'Nuevo evento'}</h2>
-          <label>
-            Título
-            <input
-              required
-              value={form.title}
-              onChange={(event) => {
-                setField('title', event.target.value);
+        <FormPanel label="Nuevo evento" forceOpen={editingId !== null}>
+          <form className="form" onSubmit={handleSubmit}>
+            <h2>{editingId ? 'Editar evento' : 'Nuevo evento'}</h2>
+            <label>
+              Título
+              <input
+                required
+                value={form.title}
+                onChange={(event) => {
+                  setField('title', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Fecha
+              <input
+                required
+                type="date"
+                value={form.eventDate}
+                onChange={(event) => {
+                  setField('eventDate', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Hora
+              <input
+                required
+                type="time"
+                value={form.startTime}
+                onChange={(event) => {
+                  setField('startTime', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Lugar
+              <input
+                value={form.location}
+                onChange={(event) => {
+                  setField('location', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Descripción
+              <input
+                value={form.description}
+                onChange={(event) => {
+                  setField('description', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Tipo
+              <select
+                value={form.type}
+                onChange={(event) => {
+                  setField('type', event.target.value as EventType);
+                }}
+              >
+                {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Categoría
+              <select
+                value={form.category}
+                onChange={(event) => {
+                  setField('category', event.target.value as EventCategory);
+                }}
+              >
+                {Object.entries(EVENT_CATEGORY_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Ministerio (opcional)
+              <select
+                value={form.ministryId ?? ''}
+                onChange={(event) => {
+                  setField('ministryId', event.target.value || null);
+                }}
+              >
+                <option value="">Ninguno</option>
+                {ministries.map((ministry) => (
+                  <option key={ministry.id} value={ministry.id}>
+                    {ministry.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <MemberPicker
+              legend="Responsables"
+              members={members}
+              selectedIds={form.responsibleIds}
+              disabled={saving}
+              onChange={(ids) => {
+                setField('responsibleIds', ids);
               }}
             />
-          </label>
-          <label>
-            Fecha
-            <input
-              required
-              type="date"
-              value={form.eventDate}
-              onChange={(event) => {
-                setField('eventDate', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Hora
-            <input
-              required
-              type="time"
-              value={form.startTime}
-              onChange={(event) => {
-                setField('startTime', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Lugar
-            <input
-              value={form.location}
-              onChange={(event) => {
-                setField('location', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Descripción
-            <input
-              value={form.description}
-              onChange={(event) => {
-                setField('description', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Tipo
-            <select
-              value={form.type}
-              onChange={(event) => {
-                setField('type', event.target.value as EventType);
-              }}
-            >
-              {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Categoría
-            <select
-              value={form.category}
-              onChange={(event) => {
-                setField('category', event.target.value as EventCategory);
-              }}
-            >
-              {Object.entries(EVENT_CATEGORY_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Ministerio (opcional)
-            <select
-              value={form.ministryId ?? ''}
-              onChange={(event) => {
-                setField('ministryId', event.target.value || null);
-              }}
-            >
-              <option value="">Ninguno</option>
-              {ministries.map((ministry) => (
-                <option key={ministry.id} value={ministry.id}>
-                  {ministry.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <MemberPicker
-            legend="Responsables"
-            members={members}
-            selectedIds={form.responsibleIds}
-            disabled={saving}
-            onChange={(ids) => {
-              setField('responsibleIds', ids);
-            }}
-          />
-          <button type="submit" disabled={saving}>
-            {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Crear evento'}
-          </button>
-          {editingId && (
-            <button type="button" className="button--secondary" onClick={cancelEdit}>
-              Cancelar edición
+            <button type="submit" disabled={saving}>
+              {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Crear evento'}
             </button>
-          )}
-        </form>
+            {editingId && (
+              <button type="button" className="button--secondary" onClick={cancelEdit}>
+                Cancelar edición
+              </button>
+            )}
+          </form>
+        </FormPanel>
       )}
     </main>
   );

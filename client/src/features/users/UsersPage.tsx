@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { ROLES, ROLE_LABELS, type Role } from '../../auth/roles';
 import { useAuth } from '../../auth/useAuth';
+import { FormPanel } from '../../components/FormPanel';
 import { createUser, listUsers, updateUser, type UserProfile } from './api';
 
 type LoadState = 'loading' | 'ready' | 'error';
@@ -77,9 +77,6 @@ export function UsersPage(): React.JSX.Element {
 
   return (
     <main className="page">
-      <p>
-        <Link to="/">← Inicio</Link>
-      </p>
       <h1>Usuarios</h1>
 
       {actionError && (
@@ -88,66 +85,68 @@ export function UsersPage(): React.JSX.Element {
         </p>
       )}
 
-      <form
-        className="form"
-        onSubmit={(event) => {
-          void handleCreate(event);
-        }}
-      >
-        <h2>Nuevo usuario</h2>
-        <label>
-          Nombre completo
-          <input
-            required
-            value={fullName}
-            onChange={(event) => {
-              setFullName(event.target.value);
-            }}
-          />
-        </label>
-        <label>
-          Correo electrónico
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-            }}
-          />
-        </label>
-        <label>
-          Contraseña inicial (mínimo 8 caracteres)
-          <input
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={8}
-            value={password}
-            onChange={(event) => {
-              setPassword(event.target.value);
-            }}
-          />
-        </label>
-        <label>
-          Rol
-          <select
-            value={role}
-            onChange={(event) => {
-              setRole(event.target.value as Role);
-            }}
-          >
-            {ROLES.map((value) => (
-              <option key={value} value={value}>
-                {ROLE_LABELS[value]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit" disabled={creating}>
-          {creating ? 'Creando…' : 'Crear usuario'}
-        </button>
-      </form>
+      <FormPanel label="Nuevo usuario">
+        <form
+          className="form"
+          onSubmit={(event) => {
+            void handleCreate(event);
+          }}
+        >
+          <h2>Nuevo usuario</h2>
+          <label>
+            Nombre completo
+            <input
+              required
+              value={fullName}
+              onChange={(event) => {
+                setFullName(event.target.value);
+              }}
+            />
+          </label>
+          <label>
+            Correo electrónico
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+              }}
+            />
+          </label>
+          <label>
+            Contraseña inicial (mínimo 8 caracteres)
+            <input
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={8}
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+              }}
+            />
+          </label>
+          <label>
+            Rol
+            <select
+              value={role}
+              onChange={(event) => {
+                setRole(event.target.value as Role);
+              }}
+            >
+              {ROLES.map((value) => (
+                <option key={value} value={value}>
+                  {ROLE_LABELS[value]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="submit" disabled={creating}>
+            {creating ? 'Creando…' : 'Crear usuario'}
+          </button>
+        </form>
+      </FormPanel>
 
       {loadState === 'loading' && <p className="status">Cargando…</p>}
       {loadState === 'ready' && (

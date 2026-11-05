@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
+import { FormPanel } from '../../components/FormPanel';
 import { formatLongDate, todayIso } from '../events/calendar';
 import { listEvents, type ChurchEvent } from '../events/api';
 import {
@@ -137,9 +137,6 @@ export function AnnouncementsPage(): React.JSX.Element {
 
   return (
     <main className="page">
-      <p>
-        <Link to="/">← Inicio</Link>
-      </p>
       <h1>Comunicados</h1>
 
       {actionError && (
@@ -182,66 +179,68 @@ export function AnnouncementsPage(): React.JSX.Element {
       )}
 
       {canWrite && (
-        <form
-          className="form"
-          onSubmit={(event) => {
-            void handleSubmit(event);
-          }}
-        >
-          <h2>{editingId ? 'Editar comunicado' : 'Publicar comunicado'}</h2>
-          <label>
-            Título
-            <input
-              required
-              maxLength={120}
-              value={form.title}
-              onChange={(event) => {
-                setField('title', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Mensaje
-            <textarea
-              required
-              rows={4}
-              maxLength={2000}
-              value={form.body}
-              onChange={(event) => {
-                setField('body', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Fecha de publicación
-            <input
-              required
-              type="date"
-              value={form.publishedOn}
-              onChange={(event) => {
-                setField('publishedOn', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={form.important}
-              onChange={(event) => {
-                setField('important', event.target.checked);
-              }}
-            />{' '}
-            Aviso importante
-          </label>
-          <button type="submit" disabled={saving}>
-            {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Publicar'}
-          </button>
-          {editingId && (
-            <button type="button" className="button--secondary" onClick={cancelEdit}>
-              Cancelar
+        <FormPanel label="Nuevo comunicado" forceOpen={editingId !== null}>
+          <form
+            className="form"
+            onSubmit={(event) => {
+              void handleSubmit(event);
+            }}
+          >
+            <h2>{editingId ? 'Editar comunicado' : 'Publicar comunicado'}</h2>
+            <label>
+              Título
+              <input
+                required
+                maxLength={120}
+                value={form.title}
+                onChange={(event) => {
+                  setField('title', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Mensaje
+              <textarea
+                required
+                rows={4}
+                maxLength={2000}
+                value={form.body}
+                onChange={(event) => {
+                  setField('body', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Fecha de publicación
+              <input
+                required
+                type="date"
+                value={form.publishedOn}
+                onChange={(event) => {
+                  setField('publishedOn', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={form.important}
+                onChange={(event) => {
+                  setField('important', event.target.checked);
+                }}
+              />{' '}
+              Aviso importante
+            </label>
+            <button type="submit" disabled={saving}>
+              {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Publicar'}
             </button>
-          )}
-        </form>
+            {editingId && (
+              <button type="button" className="button--secondary" onClick={cancelEdit}>
+                Cancelar
+              </button>
+            )}
+          </form>
+        </FormPanel>
       )}
 
       {loadState === 'ready' && (

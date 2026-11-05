@@ -14,6 +14,7 @@ import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { ResetPasswordPage } from '../pages/ResetPasswordPage';
+import { AppLayout } from './AppLayout';
 
 export function App(): React.JSX.Element {
   return (
@@ -23,86 +24,95 @@ export function App(): React.JSX.Element {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/recuperar" element={<ForgotPasswordPage />} />
           <Route path="/restablecer" element={<ResetPasswordPage />} />
+          {/* Pantallas con sesión: comparten encabezado y menú. Cada ruta valida además su rol. */}
           <Route
-            path="/"
             element={
               <ProtectedRoute>
-                <HomePage />
+                <AppLayout />
               </ProtectedRoute>
             }
-          />
-          <Route
-            path="/usuarios"
-            element={
-              <ProtectedRoute roles={['admin']}>
-                <UsersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/miembros"
-            element={
-              <ProtectedRoute roles={['admin', 'pastor', 'secretary']}>
-                <MembersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/eventos"
-            element={
-              <ProtectedRoute roles={['admin', 'pastor', 'secretary', 'treasurer']}>
-                <EventsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/asistencia"
-            element={
-              <ProtectedRoute roles={['admin', 'pastor', 'secretary']}>
-                <AttendancePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/ministerios"
-            element={
-              <ProtectedRoute roles={['admin', 'pastor', 'secretary']}>
-                <MinistriesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/donaciones"
-            element={
-              <ProtectedRoute roles={['admin', 'pastor', 'treasurer']}>
-                <DonationsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/comunicados"
-            element={
-              <ProtectedRoute roles={['admin', 'pastor', 'secretary', 'coordinator']}>
-                <AnnouncementsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reportes"
-            element={
-              <ProtectedRoute roles={['admin', 'pastor', 'secretary', 'treasurer']}>
-                <ReportsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/configuracion"
-            element={
-              <ProtectedRoute roles={['admin']}>
-                <SettingsPage />
-              </ProtectedRoute>
-            }
-          />
+          >
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <HomePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/usuarios"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <UsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/miembros"
+              element={
+                <ProtectedRoute roles={['admin', 'pastor', 'secretary']}>
+                  <MembersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/eventos"
+              element={
+                <ProtectedRoute roles={['admin', 'pastor', 'secretary', 'treasurer']}>
+                  <EventsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/asistencia"
+              element={
+                <ProtectedRoute roles={['admin', 'pastor', 'secretary']}>
+                  <AttendancePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ministerios"
+              element={
+                <ProtectedRoute roles={['admin', 'pastor', 'secretary']}>
+                  <MinistriesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/donaciones"
+              element={
+                <ProtectedRoute roles={['admin', 'pastor', 'treasurer']}>
+                  <DonationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/comunicados"
+              element={
+                <ProtectedRoute roles={['admin', 'pastor', 'secretary', 'coordinator']}>
+                  <AnnouncementsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reportes"
+              element={
+                <ProtectedRoute roles={['admin', 'pastor', 'secretary', 'treasurer']}>
+                  <ReportsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/configuracion"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

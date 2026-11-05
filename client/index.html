@@ -5,7 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1e3a8a" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:wght@500;600;700&display=swap"
+    />
     <title>Gestión de Iglesia</title>
+    <script>
+      // Aplica el tema guardado (o el del sistema) antes de pintar, para evitar un parpadeo.
+      (function () {
+        var theme = null;
+        try {
+          theme = localStorage.getItem('iglesia-theme');
+        } catch (e) {}
+        if (theme !== 'light' && theme !== 'dark') {
+          theme =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

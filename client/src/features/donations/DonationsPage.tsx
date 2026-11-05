@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
+import { FormPanel } from '../../components/FormPanel';
 import {
   DONATION_METHODS,
   METHOD_LABELS,
@@ -47,7 +47,13 @@ function methodLabel(key: string): string {
   return key in METHOD_LABELS ? METHOD_LABELS[key as DonationMethod] : key;
 }
 
-function GroupList({ title, groups }: { title: string; groups: SummaryGroup[] }): React.JSX.Element {
+function GroupList({
+  title,
+  groups,
+}: {
+  title: string;
+  groups: SummaryGroup[];
+}): React.JSX.Element {
   return (
     <>
       <h3>{title}</h3>
@@ -182,9 +188,6 @@ export function DonationsPage(): React.JSX.Element {
 
   return (
     <main className="page">
-      <p>
-        <Link to="/">← Inicio</Link>
-      </p>
       <h1>Donaciones</h1>
 
       {actionError && (
@@ -216,94 +219,98 @@ export function DonationsPage(): React.JSX.Element {
             {summary.donations === 1 ? 'aportación' : 'aportaciones'})
           </p>
           <GroupList title="Por método" groups={summary.byMethod} />
-          {canManage && summary.byConcept && <GroupList title="Por concepto" groups={summary.byConcept} />}
+          {canManage && summary.byConcept && (
+            <GroupList title="Por concepto" groups={summary.byConcept} />
+          )}
         </section>
       )}
 
       {canManage && (
-        <form
-          className="form"
-          onSubmit={(event) => {
-            void handleSubmit(event);
-          }}
-        >
-          <h2>{editingId ? 'Editar aportación' : 'Registrar aportación'}</h2>
-          <label>
-            Donante
-            <select
-              value={form.memberId}
-              onChange={(event) => {
-                setField('memberId', event.target.value);
-              }}
-            >
-              <option value={ANONYMOUS}>Anónimo</option>
-              {donors.map((donor) => (
-                <option key={donor.id} value={donor.id}>
-                  {donor.fullName}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Fecha
-            <input
-              required
-              type="date"
-              value={form.donatedOn}
-              onChange={(event) => {
-                setField('donatedOn', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Monto
-            <input
-              required
-              type="number"
-              inputMode="decimal"
-              min="0.01"
-              step="0.01"
-              value={form.amount}
-              onChange={(event) => {
-                setField('amount', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Concepto
-            <input
-              required
-              maxLength={120}
-              value={form.concept}
-              onChange={(event) => {
-                setField('concept', event.target.value);
-              }}
-            />
-          </label>
-          <label>
-            Método de recepción
-            <select
-              value={form.method}
-              onChange={(event) => {
-                setField('method', event.target.value as DonationMethod);
-              }}
-            >
-              {DONATION_METHODS.map((method) => (
-                <option key={method} value={method}>
-                  {METHOD_LABELS[method]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="submit" disabled={saving}>
-            {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Registrar aportación'}
-          </button>
-          {editingId && (
-            <button type="button" className="button--secondary" onClick={cancelEdit}>
-              Cancelar
+        <FormPanel label="Nueva aportación" forceOpen={editingId !== null}>
+          <form
+            className="form"
+            onSubmit={(event) => {
+              void handleSubmit(event);
+            }}
+          >
+            <h2>{editingId ? 'Editar aportación' : 'Registrar aportación'}</h2>
+            <label>
+              Donante
+              <select
+                value={form.memberId}
+                onChange={(event) => {
+                  setField('memberId', event.target.value);
+                }}
+              >
+                <option value={ANONYMOUS}>Anónimo</option>
+                {donors.map((donor) => (
+                  <option key={donor.id} value={donor.id}>
+                    {donor.fullName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Fecha
+              <input
+                required
+                type="date"
+                value={form.donatedOn}
+                onChange={(event) => {
+                  setField('donatedOn', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Monto
+              <input
+                required
+                type="number"
+                inputMode="decimal"
+                min="0.01"
+                step="0.01"
+                value={form.amount}
+                onChange={(event) => {
+                  setField('amount', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Concepto
+              <input
+                required
+                maxLength={120}
+                value={form.concept}
+                onChange={(event) => {
+                  setField('concept', event.target.value);
+                }}
+              />
+            </label>
+            <label>
+              Método de recepción
+              <select
+                value={form.method}
+                onChange={(event) => {
+                  setField('method', event.target.value as DonationMethod);
+                }}
+              >
+                {DONATION_METHODS.map((method) => (
+                  <option key={method} value={method}>
+                    {METHOD_LABELS[method]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="submit" disabled={saving}>
+              {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Registrar aportación'}
             </button>
-          )}
-        </form>
+            {editingId && (
+              <button type="button" className="button--secondary" onClick={cancelEdit}>
+                Cancelar
+              </button>
+            )}
+          </form>
+        </FormPanel>
       )}
 
       {canManage && loadState === 'ready' && (

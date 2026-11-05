@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
 import { EVENT_CATEGORY_LABELS, listEvents, type ChurchEvent } from '../events/api';
 import { formatLongDate, todayIso } from '../events/calendar';
@@ -334,9 +333,6 @@ export function AttendancePage(): React.JSX.Element {
 
   return (
     <main className="page">
-      <p>
-        <Link to="/">← Inicio</Link>
-      </p>
       <h1>Asistencia</h1>
       <RegisterSection canWrite={canWrite} />
       <HistorySection />

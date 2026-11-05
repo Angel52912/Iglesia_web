@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Icon, type IconName } from '../../components/Icon';
 import {
   getDashboard,
   type DashboardData,
@@ -21,9 +22,16 @@ function formatDate(iso: string): string {
   return `${day}/${month}/${year}`;
 }
 
+const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+// "2026-11-02" -> "nov"
+function monthShort(iso: string): string {
+  return MONTHS[Number(iso.slice(5, 7)) - 1] ?? '';
+}
+
 function AttendanceChart({ bars }: { bars: EventAttendanceBar[] }): React.JSX.Element {
   return (
-    <section aria-labelledby="chart-attendance">
+    <section className="panel" aria-labelledby="chart-attendance">
       <h3 id="chart-attendance">Asistencia de los últimos eventos</h3>
       {bars.length === 0 && <p className="status">Aún no hay asistencia registrada.</p>}
       <ul className="bars">
@@ -52,7 +60,7 @@ function AttendanceChart({ bars }: { bars: EventAttendanceBar[] }): React.JSX.El
 function IncomeChart({ months }: { months: MonthIncome[] }): React.JSX.Element {
   const max = Math.max(...months.map((item) => item.total), 0);
   return (
-    <section aria-labelledby="chart-income">
+    <section className="panel" aria-labelledby="chart-income">
       <h3 id="chart-income">Ingresos de los últimos 6 meses</h3>
       <ul className="bars">
         {months.map((item) => (
@@ -74,9 +82,18 @@ function IncomeChart({ months }: { months: MonthIncome[] }): React.JSX.Element {
   );
 }
 
+function StatIcon({ name }: { name: IconName }): React.JSX.Element {
+  return (
+    <span className="stat-icon">
+      <Icon name={name} size={20} />
+    </span>
+  );
+}
+
 function IncomeCard({ income }: { income: IncomeStats }): React.JSX.Element {
   return (
-    <li className="card">
+    <li className="card card--stat card--accent">
+      <StatIcon name="money" />
       <span>Ingresos de {income.month}</span>
       <strong className="stat">{money.format(income.monthTotal)}</strong>
       <span>{income.monthDonations} donaciones</span>
@@ -117,20 +134,24 @@ export function DashboardPanel(): React.JSX.Element {
       <ul className="cards cards--stats">
         {general && (
           <>
-            <li className="card">
+            <li className="card card--stat">
+              <StatIcon name="members" />
               <span>Miembros activos</span>
               <strong className="stat">{general.activeMembers}</strong>
             </li>
-            <li className="card">
+            <li className="card card--stat">
+              <StatIcon name="calendar" />
               <span>Eventos próximos</span>
               <strong className="stat">{general.upcomingCount}</strong>
             </li>
-            <li className="card">
+            <li className="card card--stat">
+              <StatIcon name="attendance" />
               <span>Asistencias registradas</span>
               <strong className="stat">{general.attendance.present}</strong>
               <span>de {general.attendance.total} marcas</span>
             </li>
-            <li className="card">
+            <li className="card card--stat">
+              <StatIcon name="ministries" />
               <span>Ministerios</span>
               <strong className="stat">{general.ministries}</strong>
             </li>
@@ -147,11 +168,17 @@ export function DashboardPanel(): React.JSX.Element {
           )}
           <ul className="cards">
             {general.upcomingEvents.map((event) => (
-              <li key={event.id} className="card">
-                <strong>{event.title}</strong>
-                <span>
-                  {formatDate(event.eventDate)} · {event.startTime}
-                  {event.location ? ` · ${event.location}` : ''}
+              <li key={event.id} className="card card--event">
+                <span className="date-chip" aria-hidden="true">
+                  <span className="date-chip__day">{event.eventDate.slice(8, 10)}</span>
+                  <span className="date-chip__month">{monthShort(event.eventDate)}</span>
+                </span>
+                <span className="card--event__body">
+                  <strong>{event.title}</strong>
+                  <span>
+                    {formatDate(event.eventDate)} · {event.startTime}
+                    {event.location ? ` · ${event.location}` : ''}
+                  </span>
                 </span>
               </li>
             ))}

@@ -1,44 +1,38 @@
-import { Link } from 'react-router-dom';
-import { ROLE_LABELS, type Role } from '../auth/roles';
 import { useAuth } from '../auth/useAuth';
 import { DashboardPanel } from '../features/dashboard/DashboardPanel';
 
-const MEMBER_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary'];
-const EVENT_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary', 'treasurer'];
-const DONATION_ROLES: readonly Role[] = ['admin', 'pastor', 'treasurer'];
-const REPORT_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary', 'treasurer'];
-const ANNOUNCEMENT_ROLES: readonly Role[] = ['admin', 'pastor', 'secretary', 'coordinator'];
+const longDate = new Intl.DateTimeFormat('es-MX', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+});
+
+function greeting(hour: number): string {
+  if (hour < 12) return 'Buenos días';
+  if (hour < 19) return 'Buenas tardes';
+  return 'Buenas noches';
+}
 
 export function HomePage(): React.JSX.Element {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   if (!user) return <></>;
+
+  const now = new Date();
+  const firstName = user.fullName.trim().split(/\s+/)[0] ?? user.fullName;
 
   return (
     <main className="page">
-      <h1>Gestión de Iglesia</h1>
-      <p>
-        Hola, <strong>{user.fullName}</strong> ({ROLE_LABELS[user.role]})
-      </p>
-      <nav className="nav">
-        {MEMBER_ROLES.includes(user.role) && <Link to="/miembros">Miembros</Link>}
-        {EVENT_ROLES.includes(user.role) && <Link to="/eventos">Eventos</Link>}
-        {MEMBER_ROLES.includes(user.role) && <Link to="/asistencia">Asistencia</Link>}
-        {MEMBER_ROLES.includes(user.role) && <Link to="/ministerios">Ministerios</Link>}
-        {DONATION_ROLES.includes(user.role) && <Link to="/donaciones">Donaciones</Link>}
-        {ANNOUNCEMENT_ROLES.includes(user.role) && <Link to="/comunicados">Comunicados</Link>}
-        {REPORT_ROLES.includes(user.role) && <Link to="/reportes">Reportes</Link>}
-        {user.role === 'admin' && <Link to="/usuarios">Usuarios</Link>}
-        {user.role === 'admin' && <Link to="/configuracion">Configuración</Link>}
-      </nav>
+      <section className="hero" aria-label="Bienvenida">
+        <p className="hero__date">{longDate.format(now)}</p>
+        <h1 className="hero__title">
+          {greeting(now.getHours())}, {firstName}
+        </h1>
+        <blockquote className="hero__verse">
+          <p>“Todo lo que hagan, háganlo de corazón, como para el Señor.”</p>
+          <cite>Colosenses 3:23</cite>
+        </blockquote>
+      </section>
       <DashboardPanel />
-      <button
-        type="button"
-        onClick={() => {
-          void signOut();
-        }}
-      >
-        Cerrar sesión
-      </button>
     </main>
   );
 }

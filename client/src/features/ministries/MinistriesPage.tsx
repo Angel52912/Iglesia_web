@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type SyntheticEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
+import { FormPanel } from '../../components/FormPanel';
 import { MemberPicker } from '../../components/MemberPicker';
 import { todayIso, formatLongDate } from '../events/calendar';
 import { listEvents, type ChurchEvent } from '../events/api';
@@ -152,9 +152,6 @@ export function MinistriesPage(): React.JSX.Element {
 
   return (
     <main className="page">
-      <p>
-        <Link to="/">← Inicio</Link>
-      </p>
       <h1>Ministerios</h1>
 
       {actionError && (
@@ -165,36 +162,38 @@ export function MinistriesPage(): React.JSX.Element {
       {message && <p role="status">{message}</p>}
 
       {canWrite && (
-        <form className="form" onSubmit={handleSubmit}>
-          <h2>{editingId ? 'Editar ministerio' : 'Nuevo ministerio'}</h2>
-          <label>
-            Nombre
-            <input
-              required
-              value={form.name}
-              onChange={(event) => {
-                setForm((current) => ({ ...current, name: event.target.value }));
-              }}
-            />
-          </label>
-          <label>
-            Descripción
-            <input
-              value={form.description}
-              onChange={(event) => {
-                setForm((current) => ({ ...current, description: event.target.value }));
-              }}
-            />
-          </label>
-          <button type="submit" disabled={saving}>
-            {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Registrar ministerio'}
-          </button>
-          {editingId && (
-            <button type="button" className="button--secondary" onClick={cancelEdit}>
-              Cancelar
+        <FormPanel label="Nuevo ministerio" forceOpen={editingId !== null}>
+          <form className="form" onSubmit={handleSubmit}>
+            <h2>{editingId ? 'Editar ministerio' : 'Nuevo ministerio'}</h2>
+            <label>
+              Nombre
+              <input
+                required
+                value={form.name}
+                onChange={(event) => {
+                  setForm((current) => ({ ...current, name: event.target.value }));
+                }}
+              />
+            </label>
+            <label>
+              Descripción
+              <input
+                value={form.description}
+                onChange={(event) => {
+                  setForm((current) => ({ ...current, description: event.target.value }));
+                }}
+              />
+            </label>
+            <button type="submit" disabled={saving}>
+              {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Registrar ministerio'}
             </button>
-          )}
-        </form>
+            {editingId && (
+              <button type="button" className="button--secondary" onClick={cancelEdit}>
+                Cancelar
+              </button>
+            )}
+          </form>
+        </FormPanel>
       )}
 
       {loadState === 'loading' && <p className="status">Cargando…</p>}

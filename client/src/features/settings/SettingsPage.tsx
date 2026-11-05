@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState, type ChangeEvent, type SyntheticEvent } from 'react';
-import { Link } from 'react-router-dom';
 import {
   createSchedule,
   deleteSchedule,
@@ -134,9 +133,6 @@ export function SettingsPage(): React.JSX.Element {
 
   return (
     <main className="page">
-      <p>
-        <Link to="/">← Inicio</Link>
-      </p>
       <h1>Configuración de la iglesia</h1>
 
       {actionError && (
